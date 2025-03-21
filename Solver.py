@@ -53,7 +53,7 @@ class Solver:
 
     def solve_row(self, dilemma, table, i):
 
-        if i == self.size:
+        if i == len(dilemma):
             for t in table:
                 print(t)
             print("____")
@@ -65,18 +65,35 @@ class Solver:
             new_table = copy.deepcopy(table)
             for k in set:
                 if not k == j:
-                    new_table[k[0]][k[1]] = 1
 
-            self.solve_row(dilemma, new_table, i)
+                    if self.valid(new_table, k):
+                        new_table[k[0]][k[1]] = 1
+                    else:
+                        break
+            else:
+                self.solve_row(dilemma, new_table, i)
 
 
-
-
+    def valid(self, table, point):
+        if point[0] != 0:
+            if table[point[0] - 1][point[1]]:
+                return False
+        if point[0] != self.size - 1:
+            if table[point[0] + 1][point[1]]:
+                return False
+        if point[1] != 0:
+            if table[point[0]][point[1] - 1]:
+                return False
+        if point[1] != self.size - 1:
+            if table[point[0]][point[1] + 1]:
+                return False
+        return True
 
 a = Solver([ [1,3, 1, 3],
              [2,3, 4, 5],
-             [2,"2",2 ,2],
-             [2,"2",2 ,2]])
+             [2,1, 2, 2],
+             [2,3, 4, 5]
+             ])
 
 print(a.matrix)
 a.solve()
