@@ -1,6 +1,7 @@
 import copy
 import queue
 from collections import deque
+from copy import deepcopy
 from idlelib.configdialog import is_int
 from tabnanny import check
 
@@ -26,7 +27,7 @@ class Solver:
     def solve(self):
         dilemma = []
 
-        matrix = self.matrix
+        matrix = copy.deepcopy(self.matrix)
         for i in range(self.size):
             for j in range(self.size):
 
@@ -43,7 +44,7 @@ class Solver:
                 if len(current) > 1:
                     dilemma.append(current)
 
-        matrix = self.matrix
+        matrix = copy.deepcopy(self.matrix)
         for j in range(self.size):
             for i in range(self.size):
 
@@ -91,6 +92,7 @@ class Solver:
         set = dilemma[i]
         i = i + 1
         for j in set:
+            if table[j[0]][j[1]]: continue
             new_table = copy.deepcopy(table)
             for k in set:
                 if not k == j:
@@ -159,18 +161,30 @@ class Solver:
 
 
 a = Solver(
-    [
-        [1, 1, 6, 1, 8, 2, 7, 9, 7, 1],
-        [8, 3, 8, 2, 5, 8, 10, 8, 9, 4],
-        [5, 6, 9, 7, 2, 8, 6, 3, 2, 1],
-        [7, 2, 3, 9, 3, 10, 3, 6, 1, 3],
-        [1, 8, 3, 8, 9, 8, 7, 2, 2, 10],
-        [1, 4, 7, 10, 7, 3, 1, 1, 8, 9],
-        [2, 9, 4, 9, 7, 9, 1, 5, 9, 3],
-        [9, 7, 2, 3, 10, 2, 8, 4, 5, 4],
-        [3, 9, 3, 1, 6, 5, 3, 10, 3, 7],
-        [4, 2, 10, 6, 2, 7, 9, 8, 3, 2]
-    ]
+    # [
+    #     [8, 4, 1, 9, 5, 10, 10, 7, 8, 6],
+    #     [4, 1, 9, 3, 5, 8, 1, 5, 10, 5],
+    #     [4, 5, 4, 10, 6, 7, 7, 9, 7, 3],
+    #     [10, 4, 2, 4, 9, 6, 3, 4, 7, 4],
+    #     [6, 7, 10, 4, 10, 6, 8, 5, 9, 1],
+    #     [7, 4, 5, 4, 8, 4, 2, 3, 4, 10],
+    #     [1, 2, 10, 7, 10, 9, 1, 6, 5, 6],
+    #     [8, 8, 7, 9, 4, 4, 6, 10, 3, 9],
+    #     [5, 3, 8, 6, 2, 10, 9, 8, 4, 7],
+    #     [3, 10, 6, 3, 1, 3, 5, 4, 3, 5]
+    # ]
+[
+    [10, 2, 2, 4, 3, 6, 5, 8, 6, 6],
+    [8, 10, 9, 5, 6, 3, 1, 6, 4, 2],
+    [5, 2, 1, 2, 8, 6, 10, 2, 7, 6],
+    [7, 1, 7, 8, 3, 2, 3, 9, 7, 10],
+    [1, 2, 4, 2, 7, 2, 9, 2, 8, 5],
+    [6, 8, 7, 10, 6, 5, 2, 4, 7, 1],
+    [9, 4, 3, 4, 10, 6, 4, 5, 2, 4],
+    [4, 3, 4, 9, 4, 8, 4, 6, 10, 4],
+    [3, 2, 8, 4, 5, 6, 7, 2, 1, 6],
+    [6, 5, 10, 2, 2, 7, 6, 1, 2, 8]
+]
 )
 
 print(a.matrix)
