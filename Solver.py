@@ -1,10 +1,5 @@
 import copy
 import queue
-from collections import deque
-from copy import deepcopy
-from idlelib.configdialog import is_int
-from tabnanny import check
-
 
 class Solver:
 
