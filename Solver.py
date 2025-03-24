@@ -1,5 +1,6 @@
 import copy
 import queue
+from collections import deque
 from idlelib.configdialog import is_int
 from tabnanny import check
 
@@ -65,21 +66,25 @@ class Solver:
         table = self.create_zero_matrix()
 
         print(table)
-
         self.solve_row(dilemma,
                        table, 0)
 
+        print("A")
+
+
     def create_zero_matrix(self):
-        return [ [0] * self.size] * self.size
+        return [[0] * self.size for _ in range(self.size)]
 
 
 
     def solve_row(self, dilemma, table, i):
 
+
         if i == len(dilemma):
             print(self.check_connection(table))
             for t in table:
                 print(t)
+
             print("____")
             return
 
@@ -99,6 +104,7 @@ class Solver:
 
 
     def valid(self, table, point):
+
         if point[0] != 0:
             if table[point[0] - 1][point[1]]:
                 return False
@@ -116,7 +122,7 @@ class Solver:
 
     def check_connection(self, table):
 
-        que = queue.Queue(maxsize =self.size ** 2)
+        que = queue.Queue()
 
         checked = copy.deepcopy(table)
 
@@ -154,13 +160,20 @@ class Solver:
 
 a = Solver(
     [
-        [2, 1, 3, 1, 4],
-        [1, 2, 1, 3, 1],
-        [5, 4, 1, 4, 2],
-        [3, 4, 5, 2, 5],
-        [4, 5, 2, 5, 3]
+        [1, 1, 6, 1, 8, 2, 7, 9, 7, 1],
+        [8, 3, 8, 2, 5, 8, 10, 8, 9, 4],
+        [5, 6, 9, 7, 2, 8, 6, 3, 2, 1],
+        [7, 2, 3, 9, 3, 10, 3, 6, 1, 3],
+        [1, 8, 3, 8, 9, 8, 7, 2, 2, 10],
+        [1, 4, 7, 10, 7, 3, 1, 1, 8, 9],
+        [2, 9, 4, 9, 7, 9, 1, 5, 9, 3],
+        [9, 7, 2, 3, 10, 2, 8, 4, 5, 4],
+        [3, 9, 3, 1, 6, 5, 3, 10, 3, 7],
+        [4, 2, 10, 6, 2, 7, 9, 8, 3, 2]
     ]
 )
 
 print(a.matrix)
 a.solve()
+
+print("z")
