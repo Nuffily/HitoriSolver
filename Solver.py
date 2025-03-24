@@ -1,5 +1,7 @@
 import copy
+import queue
 from idlelib.configdialog import is_int
+from tabnanny import check
 
 
 class Solver:
@@ -40,20 +42,42 @@ class Solver:
                 if len(current) > 1:
                     dilemma.append(current)
 
+        matrix = self.matrix
+        for j in range(self.size):
+            for i in range(self.size):
+
+                if matrix[i][j] == 0:
+                    continue
+
+                current = [(i, j)]
+
+                for k in range(i + 1, self.size):
+                    if matrix[i][j] == matrix[k][j]:
+                        matrix[k][j] = 0
+                        current.append((k, j))
+
+                if len(current) > 1:
+                    dilemma.append(current)
+
         print(dilemma)
+
+
+        table = self.create_zero_matrix()
+
+        print(table)
+
         self.solve_row(dilemma,
-                       [
-                      [0, 0, 0, 0],
-                      [0, 0, 0, 0],
-                      [0, 0, 0, 0],
-                      [0, 0, 0, 0]
-                   ], 0)
+                       table, 0)
+
+    def create_zero_matrix(self):
+        return [ [0] * self.size] * self.size
 
 
 
     def solve_row(self, dilemma, table, i):
 
         if i == len(dilemma):
+            print(self.check_connection(table))
             for t in table:
                 print(t)
             print("____")
@@ -89,11 +113,54 @@ class Solver:
                 return False
         return True
 
-a = Solver([ [1,3, 1, 3],
-             [2,3, 4, 5],
-             [2,1, 2, 2],
-             [2,3, 4, 5]
-             ])
+
+    def check_connection(self, table):
+
+        que = queue.Queue(maxsize =self.size ** 2)
+
+        checked = copy.deepcopy(table)
+
+        if table[0][0] == 1:
+            que.put((0,1))
+        else:
+            que.put((0, 0))
+
+        while not que.empty():
+
+            cur = que.get()
+
+            checked[cur[0]][cur[1]] = 1
+
+            if cur[0] != 0:
+                if not checked[cur[0] - 1][cur[1]]:
+                    que.put((cur[0] - 1,cur[1]))
+            if cur[0] != self.size - 1:
+                if not checked[cur[0] + 1][cur[1]]:
+                    que.put((cur[0] + 1,cur[1]))
+            if cur[1] != 0:
+                if not checked[cur[0]][cur[1] - 1]:
+                    que.put((cur[0], cur[1] - 1))
+            if cur[1] != self.size - 1:
+                if not checked[cur[0]][cur[1] + 1]:
+                    que.put((cur[0],cur[1] + 1))
+
+        for p in checked:
+            for f in p:
+                if not f:
+                    return False
+
+        return True
+
+
+a = Solver(
+    [
+        [2, 1, 3, 1, 4],
+        [1, 2, 1, 3, 1],
+        [5, 4, 1, 4, 2],
+        [3, 4, 5, 2, 5],
+        [4, 5, 2, 5, 3]
+    ]
+)
 
 print(a.matrix)
 a.solve()
