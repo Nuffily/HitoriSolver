@@ -1,81 +1,96 @@
 import copy
 import queue
 
+from Field import Field
+
 
 class Solver:
     def __init__(self, matrix: list[list[int]]) -> None:
-        for i in range(len(matrix)):
-            if len(matrix[i]) != len(matrix):
-                raise ValueError("Поле Hitori должно быть квадратным")
-            for j in range(len(matrix)):
-                try:
-                    matrix[i][j] = int(matrix[i][j])
-                except ValueError:
-                    raise ValueError("В поле Hitori должны быть лишь целые числа")
+        self.field = Field(matrix)
+        self.size = self.field.size
+        self.answer: list[list[list[int]]] = []
 
-                if matrix[i][j] < 1:
-                    raise ValueError("В поле Hitori должны быть лишь положительные целые числа")
-
-        self.matrix = matrix
-        self.size = len(matrix)
-
-    def solve(self) -> None:
+    def solve(self) -> list[list[list[int]]]:
         dilemma = []
 
-        matrix = copy.deepcopy(self.matrix)
+        field = copy.deepcopy(self.field)
+        field2 = copy.deepcopy(self.field)
         for i in range(self.size):
             for j in range(self.size):
-                if matrix[i][j] == 0:
+                if field(i, j) == 0:
                     continue
 
                 current = [(i, j)]
 
                 for k in range(j + 1, self.size):
-                    if matrix[i][j] == matrix[i][k]:
-                        matrix[i][k] = 0
+                    if field(i, j) == field(i, k):
+                        field.erase(i, k)
                         current.append((i, k))
 
                 if len(current) > 1:
                     dilemma.append(current)
 
-        matrix = copy.deepcopy(self.matrix)
-        for j in range(self.size):
-            for i in range(self.size):
-                if matrix[i][j] == 0:
+            for j in range(self.size):
+                if field2(j, i) == 0:
                     continue
 
-                current = [(i, j)]
+                current = [(j, i)]
 
-                for k in range(i + 1, self.size):
-                    if matrix[i][j] == matrix[k][j]:
-                        matrix[k][j] = 0
-                        current.append((k, j))
+                for k in range(j + 1, self.size):
+                    if field2(j, i) == field2(k, i):
+                        field2.erase(k, i)
+                        current.append((k, i))
 
                 if len(current) > 1:
                     dilemma.append(current)
 
-        print(dilemma)
+        # field = copy.deepcopy(self.field)
+        # for j in range(self.size):
+        #     for i in range(self.size):
+        #         if field(i, j) == 0:
+        #             continue
+        #
+        #         current = [(i, j)]
+        #
+        #         for k in range(i + 1, self.size):
+        #             if field(i, j) == field(k, j):
+        #                 field.erase(k, j)
+        #                 current.append((k, j))
+        #
+        #         if len(current) > 1:
+        #             dilemma.append(current)
 
-        table = self.create_zero_matrix()
+        table = self.create_zero_field()
 
-        print(table)
         self.solve_row(dilemma, table, 0)
 
-        print("A")
+        return self.answer
 
-    def create_zero_matrix(self) -> list[list[int]]:
+    def create_zero_field(self) -> list[list[int]]:
         return [[0] * self.size for _ in range(self.size)]
 
     def solve_row(self, dilemma: list[list[tuple[int, int]]], table: list[list[int]], i: int) -> None:
         if i == len(dilemma):
-            print(self.check_connection(table))
-            for t in table:
-                print(t)
+            if self.check_connection(table):
+                self.answer.append(table)
 
-            print("____")
+            # for d in table:
+            #     print(d)
+            #
+            # print(self.check_connection(table))
+            # print("------------")
+
             return
+
         set = dilemma[i]
         i = i + 1
+
+        for j in set:
+            if not table[j[0]][j[1]]:
+                break
+        else:
+            self.solve_row(dilemma, copy.deepcopy(table), i)
+
         for j in set:
             if table[j[0]][j[1]]:
                 continue
@@ -153,6 +168,13 @@ a = Solver(
     #     [5, 3, 8, 6, 2, 10, 9, 8, 4, 7],
     #     [3, 10, 6, 3, 1, 3, 5, 4, 3, 5]
     # ]
+    # [
+    #             [2, 3, 3, 4, 1],
+    #             [5, 2, 4, 4, 3],
+    #             [1, 2, 2, 5, 1],
+    #             [3, 4, 2, 2, 5],
+    #             [4, 3, 5, 3, 3]
+    #         ]
     [
         [10, 2, 2, 4, 3, 6, 5, 8, 6, 6],
         [8, 10, 9, 5, 6, 3, 1, 6, 4, 2],
@@ -184,7 +206,10 @@ a = Solver(
     # ]
 )
 
-print(a.matrix)
-a.solve()
-
-print("z")
+#
+# b = a.solve()
+#
+# for c in b:
+#     for d in c:
+#         print(d)
+#     print("------------")
