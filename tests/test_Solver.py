@@ -1,7 +1,7 @@
 from src.Solver import Solver
 
 
-class TestSolver:
+class Test_solver:
     def test_simple5x5(self) -> None:
         matrix_1 = [[2, 3, 3, 4, 1], [5, 2, 4, 4, 3], [1, 2, 2, 5, 1], [3, 4, 2, 2, 5], [4, 3, 5, 3, 3]]
         solver = Solver(matrix_1)
