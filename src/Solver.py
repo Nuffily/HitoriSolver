@@ -1,5 +1,4 @@
 import copy
-import queue
 
 from src.Field import Field
 from src.Tiling import Tiling
@@ -9,9 +8,9 @@ class Solver:
     def __init__(self, matrix: list[list[int]]) -> None:
         self.field = Field(matrix)
         self.size = self.field.size
-        self.answer: list[list[list[int]]] = []
+        self.answer: list[Tiling] = []
 
-    def solve(self) -> list[list[list[int]]]:
+    def solve(self) -> list[Tiling]:
         sets: list[list[tuple[int, int]]] = []
 
         field = copy.deepcopy(self.field)
@@ -52,39 +51,16 @@ class Solver:
                     # print(i)
                     sets.append([(-1, i)])
 
-        # field = copy.deepcopy(self.field)
-        # for j in range(self.size):
-        #     for i in range(self.size):
-        #         if field(i, j) == 0:
-        #             continue
-        #
-        #         current = [(i, j)]
-        #
-        #         for k in range(i + 1, self.size):
-        #             if field(i, j) == field(k, j):
-        #                 field.erase(k, j)
-        #                 current.append((k, j))
-        #
-        #         if len(current) > 1:
-        #             dilemma.append(current)
-
-        # print(sets)
-
-        # table = self.create_zero_field()
-
         self.resolve_sets(sets, Tiling(self.size), 0)
 
         return self.answer
-
-    def create_zero_field(self) -> list[list[int]]:
-        return [[0] * self.size for _ in range(self.size)]
 
     def resolve_sets(self, sets: list[list[tuple[int, int]]], tiling: Tiling, i: int) -> None:
         if i == len(sets):
             if not (tiling.is_a_enclosed_in_column(self.size - 1) | tiling.is_a_enclosed_in_column(self.size - 1)):
                 if tiling.check_connection():
-                    self.answer.append(tiling.get_int_matrix())
-                    print("yappie!")
+                    self.answer.append(tiling.__copy__())
+                    print("yuppie!")
 
             # for d in tiling.get_int_matrix():
             #     print(d)
@@ -93,14 +69,14 @@ class Solver:
 
             return
 
-        set = sets[i]
+        pack = sets[i]
         i = i + 1
 
         # print(i)
 
-        if len(set) == 1:
+        if len(pack) == 1:
             # print(set)
-            if not (tiling.is_a_enclosed_in_column(set[0][1] - 1) | tiling.is_a_enclosed_in_column(set[0][1] - 1)):
+            if not (tiling.is_a_enclosed_in_column(pack[0][1] - 1) | tiling.is_a_enclosed_in_column(pack[0][1] - 1)):
                 self.resolve_sets(sets, tiling, i)
             # else:
             # for d in tiling.get_int_matrix():
@@ -108,21 +84,21 @@ class Solver:
             # print("-----")
             return
 
-        for j in set:
+        for j in pack:
             if not tiling(j):
                 break
 
         else:
             self.resolve_sets(sets, tiling, i)
 
-        for j in set:
+        for j in pack:
             if tiling(j):
                 continue
 
             changed = []
 
             # new_table = copy.deepcopy(tiling)
-            for k in set:
+            for k in pack:
                 if not k == j:
                     if tiling.can_be_painted_over(k):
                         if tiling.paint_over(k):
@@ -135,110 +111,6 @@ class Solver:
 
             for k in changed:
                 tiling.erase(k)
-
-    # def solve_row(self, sets: list[list[tuple[int, int]]], table: list[list[int]], i: int) -> None:
-    #     if i == len(sets):
-    #         if self.check_connection(table):
-    #             self.answer.append(table)
-    #
-    #         # for d in table:
-    #         #     print(d)
-    #         #
-    #         # print(self.check_connection(table))
-    #         # print("------------")
-    #
-    #         return
-    #
-    #     set = sets[i]
-    #     i = i + 1
-    #
-    #     # if len(set) == 1:
-    #     #
-    #
-    #     for j in set:
-    #         if not table[j[0]][j[1]]:
-    #             break
-    #     else:
-    #         self.solve_row(sets, copy.deepcopy(table), i)
-    #
-    #     for j in set:
-    #         if table[j[0]][j[1]]:
-    #             continue
-    #         new_table = copy.deepcopy(table)
-    #         for k in set:
-    #             if not k == j:
-    #                 if self.valid(new_table, k):
-    #                     new_table[k[0]][k[1]] = 1
-    #                 else:
-    #                     break
-    #         else:
-    #             self.solve_row(sets, new_table, i)
-
-    def valid(self, table: list[list[int]], point: tuple[int, int]) -> bool:
-        if point[0] != 0:
-            if table[point[0] - 1][point[1]]:
-                return False
-        if point[0] != self.size - 1:
-            if table[point[0] + 1][point[1]]:
-                return False
-        if point[1] != 0:
-            if table[point[0]][point[1] - 1]:
-                return False
-        if point[1] != self.size - 1:
-            if table[point[0]][point[1] + 1]:
-                return False
-        return True
-
-    def is_closed(self, table: list[list[int]], point: tuple[int, int]) -> bool:
-        if point[0] != 0:
-            if not table[point[0] - 1][point[1]]:
-                return False
-        if point[0] != self.size - 1:
-            if not table[point[0] + 1][point[1]]:
-                return False
-        if point[1] != 0:
-            if not table[point[0]][point[1] - 1]:
-                return False
-        if point[1] != self.size - 1:
-            if not table[point[0]][point[1] + 1]:
-                return False
-
-        return True
-
-    def check_connection(self, table: list[list[int]]) -> bool:
-        que: queue.Queue[tuple[int, int]] = queue.Queue()
-
-        checked = copy.deepcopy(table)
-
-        if table[0][0] == 1:
-            que.put((0, 1))
-        else:
-            que.put((0, 0))
-
-        while not que.empty():
-            cur = que.get()
-
-            checked[cur[0]][cur[1]] = 1
-
-            if cur[0] != 0:
-                if not checked[cur[0] - 1][cur[1]]:
-                    que.put((cur[0] - 1, cur[1]))
-            if cur[0] != self.size - 1:
-                if not checked[cur[0] + 1][cur[1]]:
-                    que.put((cur[0] + 1, cur[1]))
-            if cur[1] != 0:
-                if not checked[cur[0]][cur[1] - 1]:
-                    que.put((cur[0], cur[1] - 1))
-            if cur[1] != self.size - 1:
-                if not checked[cur[0]][cur[1] + 1]:
-                    que.put((cur[0], cur[1] + 1))
-
-        for p in checked:
-            for f in p:
-                if not f:
-                    return False
-
-        return True
 
 
 a = Solver(
@@ -330,9 +202,9 @@ a = Solver(
 )
 #
 #
-b = a.solve()
-
-for c in b:
-    for d in c:
-        print(d)
-    print("------------")
+# b = a.solve()
+#
+# for c in b:
+#     for d in c:
+#         print(d)
+#     print("------------")

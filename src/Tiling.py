@@ -10,9 +10,11 @@ class Tiling:
     def __call__(self, point: tuple[int, int]) -> bool:
         return self.matrix[point[0]][point[1]]
 
-    # def __copy__(self):
-    #     result = Tiling(self.size)
-    #     result.matrix = deepcopy(self.matrix)
+    def __copy__(self) -> "Tiling":
+        result = Tiling(self.size)
+        result.matrix = deepcopy(self.matrix)
+        return result
+
     def get_matrix(self) -> list[list[bool]]:
         return deepcopy(self.matrix)
 
