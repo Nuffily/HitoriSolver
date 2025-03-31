@@ -4,83 +4,44 @@ from src.Field import Field
 from src.Solver import Solver
 
 
-def get_field(command: str) -> list[list[int]]:
-    cells = command.split(" ")
-
-    n = len(cells)
-
+def get_field(n: int, limit: int) -> Field:
+    row_pattern = re.compile(r"\d+")
     matrix: list[list[int]] = []
-    row: list[int] = []
 
-    for j in range(n):
-        try:
-            row[j] = int(cells[j])
-        except ValueError:
-            print("В матрице должны быть только натуральные числа")
-            return []
+    for _i in range(n):
+        string = input()
 
-    matrix.append(row)
+        row = [int(x) for x in row_pattern.findall(string)]
 
-    for _i in range(1, n):
-        cells = input().split(" ")
+        if limit:
+            if sum(row) > limit:
+                raise ValueError("Превышен лимит суммы в строке")
 
-        row = []
-
-        if len(cells) != n:
-            return []
-
-        for j in range(n):
-            try:
-                row[j] = int(command[j])
-            except ValueError:
-                print("В матрице должны быть только натуральные числа")
-                return []
-
+        if len(row) != n:
+            raise ValueError(f"В каждой строке должно быть {n} натуральных чисел")
         else:
             matrix.append(row)
 
-    return matrix
+    if limit:
+        for i in range(n):
+            if sum([matrix[i][j] for j in range(n)]) > limit:
+                raise ValueError(f"В каждом столбце должно быть {n} натуральных чисел")
+
+    return Field(matrix)
 
 
 def main() -> int:
     limit = 0
-    straight = 1
-
-    row_pattern = re.compile(r"((\d)+\s)+(\d)+")
 
     print(
         """
     Это программа, решающая головоломку Hitori!
-    Введите построчно игровое поле Hitori или команду -help для справки
+    Введите "-solve (РАЗМЕР ПОЛЯ)" для решения или команду -help для справки
     """
     )
 
     while True:
         command = input()
-
-        if row_pattern.fullmatch(command):
-            matrix = get_field(command)
-
-            if not len(matrix):
-                continue
-
-            ffield = Field(matrix)
-            solver = Solver(matrix)
-
-            result = solver.solve()
-
-            for r in result:
-                ffield.print_painted_over(r)
-
-            # solves: list[list[list[str]]] = []
-            #
-            # for r in result:
-            #     solves.append(ffield.paint_over_matrix(r))
-            #
-            # for s in solves:
-            #     for r in s:
-            #         print(r)
-            #     print("--------")
 
         args = command.split()
 
@@ -91,17 +52,11 @@ def main() -> int:
             print(
                 """
     Это программа, решающая головоломку Hitori!
-    Для решения введите построчно игровое поле Hitori
+    Для решения введите "-solve (РАЗМЕР ПОЛЯ)", а затем - построчно игровое поле Hitori
     Поле должно быть квадратным и состоять только из натуральных чисел
 
     Чтобы ограничить сумму чисел в столбцах и строках до N введите:
         -limit N
-
-    Сразу выводить первые N решений (По умолчанию 1):
-        -printstr N
-
-    Вывести еще N решений:
-        -printnxt N
                 """
             )
 
@@ -112,19 +67,51 @@ def main() -> int:
         if len(args) == 1:
             continue
 
-        elif args[0] == "-limit":
+        if args[0] in ("-solve", "--s", "-s") and args[1].isdigit() and (int(args[1]) > 0):
+            print(f"Введите {args[1]} строк по {args[1]} натуральных чисел")
+
+            try:
+                hitori_field = get_field(int(args[1]), limit)
+            except ValueError as e:
+                print(e)
+                continue
+
+            print("Считаю...")
+            solver = Solver(hitori_field)
+
+            result = solver.solve()
+
+            n = len(result)
+
+            if n == 0:
+                print("Решений нет")
+
+            elif n == 1:
+                print("Найдено единственное решение:")
+                hitori_field.print_painted_over(result[0])
+
+            else:
+                print(f"Найдено {n} решений, вот первое:")
+                hitori_field.print_painted_over(result[0])
+                print("Сколько еще вывести?")
+
+                string = input()
+
+                if string.isdigit() and (int(string) > 0):
+                    for i in range(1, int(string) + 1):
+                        try:
+                            print("-------------------------")
+                            hitori_field.print_painted_over(result[i])
+                        except IndexError:
+                            print("Выведены все решения")
+                            break
+
+        elif args[0] == "-limit" and args[1].isdigit() and int(args[1]) >= 0:
             limit = int(args[1])
-
-        elif args[0] == "-printstr":
-            straight = int(args[1])
-
-        elif args[0] == "-printnxt":
-            # print_next(command[1])
-            pass
-
-        elif args[0] == "-useless":
-            print(limit, straight)
-            pass
+            if int(args[1]) > 0:
+                print("Теперь в сумма числе в строке/столбце не превысит " + args[1])
+            else:
+                print("Ограничение на сумму в строках/столбцах снято")
 
 
 if __name__ == "__main__":

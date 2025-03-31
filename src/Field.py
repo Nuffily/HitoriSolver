@@ -24,24 +24,12 @@ class Field:
     def erase(self, x: int, y: int) -> None:
         self.field[x][y] = 0
 
-    # def paint_over_matrix(self, tiling: list[list[int]]) -> list[list[str]]:
-    #
-    #     result: list[list[str]] = [["▮"] * self.size for _ in range(self.size)]
-    #
-    #     for row in range(self.size):
-    #         for column in range(self.size):
-    #             if not tiling[row][column]:
-    #                 result[row][column] = self.field[row][column]
-    #
-    #
-    #     return result
-
     def print_painted_over(self, tiling: Tiling) -> None:
         for row in range(self.size):
             for column in range(self.size):
                 if not tiling((row, column)):
-                    print(str(self.field[row][column]) + " " * (3 - len(str(self.field[row][column]))), end="")
+                    print(str(self.field[row][column]) + " " * (4 - len(str(self.field[row][column]))), end="")
                 else:
-                    print("█" + " " * 2, end="")
+                    print("█" + " " * 3, end="")
 
             print()
