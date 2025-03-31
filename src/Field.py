@@ -25,6 +25,9 @@ class Field:
         self.field[x][y] = 0
 
     def print_painted_over(self, tiling: Tiling) -> None:
+        if tiling.size != self.size:
+            raise ValueError("Укладка не подходящего размера")
+
         for row in range(self.size):
             for column in range(self.size):
                 if not tiling((row, column)):
