@@ -48,7 +48,7 @@ def main() -> int:
         if not len(args):
             continue
 
-        if args[0] in ("-help", "--h"):
+        if args[0] in ("-help", "--h", "-h"):
             print(
                 """
     Это программа, решающая головоломку Hitori!
@@ -87,11 +87,11 @@ def main() -> int:
                 print("Решений нет")
 
             elif n == 1:
-                print("Найдено единственное решение:")
+                print("Найдено единственное минимальное решение:")
                 hitori_field.print_painted_over(result[0])
 
             else:
-                print(f"Найдено {n} решений, вот первое:")
+                print(f"Найдено {n} минимальных решений, вот первое:")
                 hitori_field.print_painted_over(result[0])
                 print("Сколько еще вывести?")
 
@@ -103,7 +103,7 @@ def main() -> int:
                             print("-------------------------")
                             hitori_field.print_painted_over(result[i])
                         except IndexError:
-                            print("Выведены все решения")
+                            print("Выведены все минимальные решения")
                             break
 
         elif args[0] == "-limit" and args[1].isdigit() and int(args[1]) >= 0:
