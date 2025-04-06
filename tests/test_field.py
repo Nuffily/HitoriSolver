@@ -2,8 +2,9 @@ import unittest
 from io import StringIO
 from unittest.mock import patch
 
-from src.Field import Field
-from src.Tiling import Tiling
+from hitori_solver.field import Field
+from hitori_solver.shared_models import Cell
+from hitori_solver.tiling import Tiling
 
 
 class TestField(unittest.TestCase):
@@ -35,9 +36,9 @@ class TestField(unittest.TestCase):
     def test_print_painted_over(self) -> None:
         tiling = Tiling(3)
 
-        tiling.paint_over((0, 0))
-        tiling.paint_over((1, 1))
-        tiling.paint_over((1, 2))
+        tiling.paint_over(Cell(0, 0))
+        tiling.paint_over(Cell(1, 1))
+        tiling.paint_over(Cell(1, 2))
 
         with patch("sys.stdout", new=StringIO()) as fake_out:
             Field(self.matrix).print_painted_over(tiling)

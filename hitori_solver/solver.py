@@ -1,70 +1,71 @@
 import copy
 
-from src.Field import Field
-from src.Tiling import Tiling
+from hitori_solver.field import Field
+from hitori_solver.shared_models import Cell
+from hitori_solver.tiling import Tiling
 
 
 class Solver:
     def __init__(self, matrix: "Field") -> None:
-        self.field = matrix
-        self.size = self.field.size
-        self.answer: list[Tiling] = []
+        self._field = matrix
+        self._size = self._field.size
+        self._answer: list[Tiling] = []
 
     def solve(self) -> list[Tiling]:
-        sets = self.find_sets_to_resolve()
+        sets = self._find_sets_to_resolve()
 
-        self.resolve_sets(sets, Tiling(self.size), 0)
+        self._resolve_sets(sets, Tiling(self._size), 0)
 
-        return self.answer
+        return list(set(self._answer))
 
-    def find_sets_to_resolve(self) -> list[list[tuple[int, int]]]:
-        sets: list[list[tuple[int, int]]] = []
+    def _find_sets_to_resolve(self) -> list[list[Cell]]:
+        sets: list[list[Cell]] = []
 
-        field = copy.deepcopy(self.field)
-        field2 = copy.deepcopy(self.field)
+        field = copy.deepcopy(self._field)
+        field2 = copy.deepcopy(self._field)
 
-        for i in range(self.size):
+        for i in range(self._size):
             set_count = len(sets)
 
-            for j in range(self.size):
+            for j in range(self._size):
                 if field(i, j) == 0:
                     continue
 
-                current = [(i, j)]
+                current = [Cell(i, j)]
 
-                for k in range(j + 1, self.size):
+                for k in range(j + 1, self._size):
                     if field(i, j) == field(i, k):
                         field.erase(i, k)
-                        current.append((i, k))
+                        current.append(Cell(i, k))
 
                 if len(current) > 1:
                     sets.append(current)
 
-            for j in range(self.size):
+            for j in range(self._size):
                 if field2(j, i) == 0:
                     continue
 
-                current = [(j, i)]
+                current = [Cell(j, i)]
 
-                for k in range(j + 1, self.size):
+                for k in range(j + 1, self._size):
                     if field2(j, i) == field2(k, i):
                         field2.erase(k, i)
-                        current.append((k, i))
+                        current.append(Cell(k, i))
 
                 if len(current) > 1:
                     sets.append(current)
 
             if (i > 0) & (set_count != len(sets)):
-                sets.append([(-1, i)])
+                sets.append([Cell(-1, i)])
 
         return sets
 
-    def resolve_sets(self, sets: list[list[tuple[int, int]]], tiling: Tiling, i: int) -> None:
+    def _resolve_sets(self, sets: list[list[Cell]], tiling: Tiling, i: int) -> None:
         if i == len(sets):
-            if (not (tiling.is_a_enclosed_in_column(self.size - 1) | tiling.is_a_enclosed_in_row(self.size - 1))) & (
+            if (not (tiling.is_a_enclosed_in_column(self._size - 1) | tiling.is_a_enclosed_in_row(self._size - 1))) & (
                 tiling.check_connection()
             ):
-                self.answer.append(tiling.__copy__())
+                self._answer.append(tiling.__copy__())
 
             return
 
@@ -73,7 +74,7 @@ class Solver:
 
         if len(pack) == 1:
             if not (tiling.is_a_enclosed_in_column(pack[0][1] - 1) | tiling.is_a_enclosed_in_row(pack[0][1] - 1)):
-                self.resolve_sets(sets, tiling, i)
+                self._resolve_sets(sets, tiling, i)
 
             return
 
@@ -82,7 +83,7 @@ class Solver:
                 break
 
         else:
-            self.resolve_sets(sets, tiling, i)
+            self._resolve_sets(sets, tiling, i)
 
         for j in pack:
             if tiling(j):
@@ -100,7 +101,7 @@ class Solver:
                         break
 
             else:
-                self.resolve_sets(sets, tiling, i)
+                self._resolve_sets(sets, tiling, i)
 
             for k in changed:
                 tiling.erase(k)

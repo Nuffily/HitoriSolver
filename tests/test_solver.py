@@ -1,5 +1,5 @@
-from src.Field import Field
-from src.Solver import Solver
+from hitori_solver.field import Field
+from hitori_solver.solver import Solver
 
 
 class TestSolver:
@@ -91,19 +91,7 @@ class TestSolver:
                 [1, 0, 1, 0, 1, 0, 0, 0, 0, 1],
                 [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
                 [1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
-            ],
-            [
-                [0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-                [0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-                [0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-                [0, 1, 0, 0, 0, 1, 0, 1, 0, 0],
-                [0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-                [0, 1, 0, 1, 0, 0, 1, 0, 0, 0],
-                [1, 0, 1, 0, 1, 0, 0, 0, 0, 1],
-                [0, 0, 0, 0, 0, 1, 0, 1, 0, 0],
-                [1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
-            ],
+            ]
         ]
 
         matrix_3 = Field(
