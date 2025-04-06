@@ -49,15 +49,15 @@ class TestTiling(unittest.TestCase):
         self.assertTrue(self.tiling.can_be_painted_over(Cell(0, 0)))
 
     def test_is_enclosed(self) -> None:
-        self.assertFalse(self.tiling.is_enclosed((1, 1)))
+        self.assertFalse(self.tiling.is_enclosed(Cell(1, 1)))
 
         for i in range(3):
             for j in range(3):
                 if not (i == 1 and j == 1):
                     self.tiling.paint_over(Cell(i, j))
 
-        self.assertTrue(self.tiling.is_enclosed((1, 1)))
-        self.assertTrue(self.tiling.is_enclosed((0, 0)))
+        self.assertTrue(self.tiling.is_enclosed(Cell(1, 1)))
+        self.assertTrue(self.tiling.is_enclosed(Cell(0, 0)))
 
     def test_is_a_enclosed_in_row_column(self) -> None:
         for i in range(3):

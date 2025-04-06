@@ -3,6 +3,13 @@ from hitori_solver.tiling import Tiling
 
 
 class Field:
+    """
+    Является полем Hitori с которым работает класс Solver
+    Поле должно быть квадратным и состоять только из натуральных чисел
+    """
+
+    _CELL_SIZE = 4
+
     def __init__(self, matrix: list[list[int]]) -> None:
         """
         Сохраняет в свое поле полученную матрицу.
@@ -12,12 +19,16 @@ class Field:
 
         self._check_is_valid(matrix)
 
-        self.field = matrix
-        self.size = len(matrix)
+        self._field = matrix
+        self._size = len(matrix)
 
     def __call__(self, x: int, y: int) -> int:
         """Возвращает поле матрицы по полученным координатам"""
-        return self.field[x][y]
+        return self._field[x][y]
+
+    def get_size(self) -> int:
+        """Возвращает размер поля"""
+        return self._size
 
     def _check_is_valid(self, matrix: list[list[int]]) -> None:
         """
@@ -33,17 +44,29 @@ class Field:
 
     def erase(self, x: int, y: int) -> None:
         """Меняет значение ячейки матрицы по данным координатам на 0"""
-        self.field[x][y] = 0
+        self._field[x][y] = 0
 
     def print_painted_over(self, tiling: Tiling) -> None:
-        if tiling.get_size() != self.size:
+        """
+        Выводит поле закрасив на нем ячейки соответствующие тем координатам, в каких у полученной укладки стоят единицы
+        Если укладка имеет размер различный с полем, выбрасывается ValueError
+        """
+        if tiling.get_size() != self._size:
             raise ValueError("Укладка не подходящего размера")
 
-        for row in range(self.size):
-            for column in range(self.size):
+        for row in range(self._size):
+            for column in range(self._size):
                 if not tiling(Cell(row, column)):
-                    print(str(self.field[row][column]) + " " * (4 - len(str(self.field[row][column]))), end="")
+                    print(
+                        f"{self._field[row][column]}{" " * (self._CELL_SIZE - len(str(self._field[row][column])))}",
+                        end="",
+                    )
+
                 else:
-                    print("█" + " " * 3, end="")
+                    print(
+                        "█" * len(str(self._field[row][column]))
+                        + " " * (self._CELL_SIZE - len(str(self._field[row][column]))),
+                        end="",
+                    )
 
             print()

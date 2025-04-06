@@ -5,6 +5,11 @@ from hitori_solver.solver import Solver
 
 
 class Handler:
+    """
+    Управляет взаимодействием с классом Solver,
+    может принимать матрицу из потока ввода и выводить в поток вывода результат
+    """
+
     def __init__(self) -> None:
         self._field: Field
         self._limit = 0
@@ -52,7 +57,6 @@ class Handler:
     def solve_and_print(self) -> None:
         """
         Подает _field в экземпляр Solver и выводит один ответ
-
         Если остались еще ответы, с помощью input() предлагает ввести число ответов, которые еще следует вывести
         """
 

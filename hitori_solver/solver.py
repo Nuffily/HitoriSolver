@@ -8,7 +8,7 @@ from hitori_solver.tiling import Tiling
 class Solver:
     def __init__(self, matrix: "Field") -> None:
         self._field = matrix
-        self._size = self._field.size
+        self._size = self._field.get_size()
         self._answer: list[Tiling] = []
 
     def solve(self) -> list[Tiling]:
