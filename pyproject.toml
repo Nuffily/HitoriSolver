@@ -49,6 +49,7 @@ follow_imports_for_stubs = true
 
 [tool.black]
 line-length = 120
+skip-magic-trailing-comma = true
 target-version = ['py311']
 include = '\.pyi?$'
 

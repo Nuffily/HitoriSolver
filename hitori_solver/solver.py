@@ -111,7 +111,8 @@ class Solver:
         то она добавляется в список ответов - self._answer
         """
 
-        if set_num == len(sets):  # Обход окончен, проверяем связность
+        """Обход окончен и все нужные клетки закрашены, проверяем связность"""
+        if set_num == len(sets):
             if (not (tiling.is_a_enclosed_in_column(self._size - 1) | tiling.is_a_enclosed_in_row(self._size - 1))) & (
                 tiling.check_connection()
             ):
