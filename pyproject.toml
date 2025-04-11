@@ -1,9 +1,9 @@
 [project]
-name = "hitorisolver"
-version = "0.1.0"
+name = "hitori_solver"
+version = "1.0.0"
 description = "\"Program, solving 'hitori' puzzle\""
 authors = [
-    {name = "Maxim",email = "you@example.com"}
+    {name = "Maxim",email = "Nuffily@hotmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.13"
