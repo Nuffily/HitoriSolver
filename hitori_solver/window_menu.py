@@ -13,8 +13,10 @@ from PyQt6.QtWidgets import (
 )
 
 from hitori_solver.field import Field
+from hitori_solver.field_generator import FieldGenerator
 from hitori_solver.shared_models import Cell
 from hitori_solver.solver import Solver
+from hitori_solver.tiling import Tiling
 
 
 class MainMenu(QWidget):
@@ -36,23 +38,6 @@ class MainMenu(QWidget):
 
         self.setLayout(self.main_layout)
 
-    # def create_button(self, inscription: str) -> QPushButton:
-    #     """Создает и возвращает кнопку с поданной надписью размера 150x40"""
-    #     button = QPushButton(inscription)
-    #     button.setFixedSize(150, 40)
-    #     return button
-    #
-    # def create_main_button_layout(self, *args: QPushButton) -> QHBoxLayout:
-    #     """Собирает полученные кнопки в QHBoxLayout и возвращает его"""
-    #     button_layout = QHBoxLayout()
-    #
-    #     button_layout.addStretch(1)
-    #     for button in args:
-    #         button_layout.addWidget(button)
-    #     button_layout.addStretch(1)
-    #
-    #     return button_layout
-
     def create_image_label(self, path: str) -> QLabel:
         """Загружает изображение и возвращает QLabel с ним"""
         pixmap = QPixmap(path)
@@ -69,6 +54,8 @@ class MainMenu(QWidget):
 
 
 class SolverMenu(QWidget):
+    """Меню для ввода своей головоломки и получения решения на нее"""
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -101,67 +88,6 @@ class SolverMenu(QWidget):
 
         self.main_layout.addLayout(MenuUtils.pack_layout(self.button_menu, self.button_solve))
         self.setLayout(self.main_layout)
-
-    # def _create_table(self, size):
-    #
-    #     if size < 3 or size > 10:
-    #         self.info_label.setText("Размер поля должен быть в пределах от 3 до 10")
-    #         return
-    #
-    #     if hasattr(self, 'table'):
-    #         self.main_layout.removeWidget(self.table)
-    #         self.table.deleteLater()
-    #
-    #     self.table = QTableWidget(size, size)
-    #     self.table.verticalHeader().hide()
-    #     self.table.horizontalHeader().hide()
-    #     self.table.resizeColumnsToContents()
-    #     self.table.resizeRowsToContents()
-    #
-    #     self.table.setStyleSheet("""
-    #                        QTableWidget {
-    #                            background-color: #171d25;
-    #                            gridline-color: #171d25;
-    #                            border: 0px;
-    #                            font-size: 20px;
-    #                            padding: 0px 0px ;
-    #                        }
-    #
-    #                        QLineEdit {
-    #                            background-color: #9ba2aa;
-    #                            color: #171d25;
-    #                            border: none;
-    #                            font-size: 25px;
-    #                            padding: 2px 2px ;
-    #                        }
-    #                          QTableWidget::item:selected {
-    #                             background-color: #171d25;
-    #                             color: #9ba2aa;
-    #                         }
-    #                    """)
-    #
-    #     self.table.setFixedSize(
-    #         self.table.horizontalHeader().length() + self.table.verticalHeader().width(),
-    #         self.table.verticalHeader().length() + self.table.horizontalHeader().height(),
-    #     )
-    #
-    #     self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    #     self.table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    #
-    #     validator = QIntValidator(0, 10)
-    #     validator.setBottom(1)
-    #
-    #     for x in range(size):
-    #         for y in range(size):
-    #             item = QTableWidgetItem("0")
-    #
-    #             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-    #
-    #             self.table.setItem(x, y, item)
-    #
-    #             self.table.setCellWidget(x, y, self._create_validated_cell(validator))
-    #
-    #     self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
     def _recreate_field(self, size: int) -> None:
         """Пересоздает QTable размера size и добавляет ее в main_layout"""
@@ -239,6 +165,7 @@ class SolverMenu(QWidget):
         field.setCellWidget(x, y, valid_line_edit)
 
     def _get_matrix(self) -> list[list[int]]:
+        """Достает и возвращает матрицу из self.field"""
         matrix = []
 
         for x in range(self.field.rowCount()):
@@ -255,6 +182,12 @@ class SolverMenu(QWidget):
         return matrix
 
     def _try_to_solve(self) -> None:
+        """
+        Пытается решить введенное в self.field поле Hitori
+        При нахождении такового закрашивает клетки соответствующие первому найденному решению
+        Результат работы выписывает в self.info_label
+        """
+
         matrix = self._get_matrix()
 
         if not self.field.isEnabled():
@@ -288,9 +221,233 @@ class SolverMenu(QWidget):
             self.info_label.setText(str(e))
 
 
+class PlayMenu(QWidget):
+    """Меню для ввода своей головоломки и получения решения на нее"""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.generator = FieldGenerator()
+
+        self.main_layout = QVBoxLayout()
+
+        self.info_label = MenuUtils.create_label("")
+
+        self.table = self._create_table_field(5)
+        self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
+
+        self.main_layout.addLayout(MenuUtils.pack_layout(self.info_label))
+        self.main_layout.addSpacing(30)
+
+        self.edit_line_size = MenuUtils.create_line_edit("Введите размер поля", QIntValidator(5, 10))
+        self.button_change_table = MenuUtils.create_button("Сгенерировать поле", (250, 40))
+
+        self.button_change_table.clicked.connect(
+            lambda: self._recreate_field(int(self.edit_line_size.text()))
+            if self.edit_line_size.text() != ""
+            else self.info_label.setText("Введите размер поля")
+        )
+
+        self.main_layout.addLayout(MenuUtils.pack_layout(self.edit_line_size, self.button_change_table))
+        self.main_layout.addSpacing(50)
+
+        self.button_menu = MenuUtils.create_button("Назад")
+        self.button_solve = MenuUtils.create_button("Решить")
+
+        self.button_solve.clicked.connect(self._check_answer)
+
+        self.main_layout.addLayout(MenuUtils.pack_layout(self.button_menu, self.button_solve))
+        self.setLayout(self.main_layout)
+
+    def _recreate_field(self, size: int) -> None:
+        """Пересоздает QTable размера size и добавляет ее в main_layout"""
+
+        if size < 3 or size > 8:
+            self.info_label.setText("Размер поля должен быть в пределах от 3 до 8")
+            return
+
+        self.main_layout.removeWidget(self.table)
+        self.table.deleteLater()
+
+        self.table = self._create_table_field(size)
+
+        self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
+
+    def _create_table_field(self, size: int) -> QTableWidget:
+        """Создает QTable заданного размера, в ячейки которой можно вписать только числа от 0 до 99"""
+
+        table = QTableWidget(size, size)
+
+        table.verticalHeader().hide()
+        table.horizontalHeader().hide()
+        table.resizeColumnsToContents()
+        table.resizeRowsToContents()
+
+        table.setStyleSheet(
+            """
+           QTableWidget {
+               background-color: #171d25;
+               gridline-color: #171d25;
+               border: 0px;
+               font-size: 20px;
+               padding: 0px 0px ;
+           }
+           QLineEdit {
+               background-color: #9ba2aa;
+               color: #171d25;
+               border: none;
+               font-size: 25px;
+               padding: 2px 2px ;
+           }
+            QTableWidget::item:selected {
+                background-color: #171d25;
+                color: #9ba2aa;
+            }
+        """
+        )
+
+        table.setFixedSize(
+            table.horizontalHeader().length() + table.verticalHeader().width(),
+            table.verticalHeader().length() + table.horizontalHeader().height(),
+        )
+
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+        self.field = self.generator.generate_hitori_field(size)
+
+        for x in range(size):
+            for y in range(size):
+                self._field_cell(table, x, y, self.field(x, y))
+
+        return table
+
+    def _field_cell(self, table: QTableWidget, x: int, y: int, num: int) -> None:
+        """Форматирует ячейку QTable по координатам (x, y), добавляя в нее validator"""
+        item = MenuUtils.ToggleButton(str(num))
+        table.setCellWidget(x, y, item)
+
+    def _get_tiling(self) -> Tiling:
+        """Достает и возвращает матрицу из self.field"""
+        tiling = Tiling(self.field.get_size())
+
+        for x in range(self.table.rowCount()):
+            row = []
+            for y in range(self.table.columnCount()):
+                widget = self.table.cellWidget(x, y)
+                if widget and isinstance(widget, MenuUtils.ToggleButton):
+                    if self.table.cellWidget(x, y).is_painted:
+                        tiling.paint_over(Cell(x, y))
+                else:
+                    row.append(0)
+
+        return tiling
+
+    def _check_answer(self) -> None:
+        """
+        Пытается решить введенное в self.field поле Hitori
+        При нахождении такового закрашивает клетки соответствующие первому найденному решению
+        Результат работы выписывает в self.info_label
+        """
+        cur = self._get_tiling()
+
+        for x in range(self.field.get_size()):
+            for y in range(self.field.get_size()):
+                if cur(Cell(x, y)) and not cur.can_be_painted_over(Cell(x, y)):
+                    self.info_label.setText("Неверно... Закрашенные клетки вплотную")
+                    return
+
+        solver = Solver(self.field)
+        answer = solver.solve()
+
+        for a in answer:
+            if a <= cur:
+                if cur.check_connection():
+                    self.info_label.setText("Решение верно!")
+                    return
+                else:
+                    self.info_label.setText("Неверно... Связность нарушена")
+                    return
+
+        self.info_label.setText("Неверно... Нужно закрасить больше")
+
+
+class RulesMenu(QWidget):
+    """Меню для ввода своей головоломки и получения решения на нее"""
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.generator = FieldGenerator()
+
+        self.main_layout = QVBoxLayout()
+
+        self.info_label = MenuUtils.create_label(
+            """
+    Hitori - это логическая головоломка с простыми правилами и сложным решением.
+
+    Правила игры Hitori просты: Необходимо закрасить некоторые ячейки таблицы, выполнив следующие условия:
+
+    1. В любой строке/столбце ни одно число не должно повторяться
+    2. чёрных ячейки не могут быть расположены рядом по горизонтали или вертикали
+    3. Все незакрашенные ячейки должны быть объединены в одну группу
+
+    В этой программке вы можете либо попробовать решить сгенерированную ею, либо вписать свою и получить на нее решение
+
+    Сделано на МатМехе
+        """
+        )
+
+        self.info_label.setWordWrap(True)
+
+        self.main_layout.addLayout(MenuUtils.pack_layout(self.info_label))
+
+        self.button_menu = MenuUtils.create_button("Назад")
+
+        self.main_layout.addLayout(MenuUtils.pack_layout(self.button_menu))
+        self.setLayout(self.main_layout)
+
+
 class MenuUtils:
+    """Класс для упрощения создания элементов графического интерфейса"""
+
     def __init__(self) -> None:
         raise TypeError("Это статический класс")
+
+    class ToggleButton(QPushButton):
+        def __init__(self, inscr: str) -> None:
+            super().__init__(inscr)
+            self.clicked.connect(self.toggle_color)
+            self.is_painted = False
+            self.update_button_color()
+
+        def toggle_color(self) -> None:
+            self.is_painted = not self.is_painted
+            self.update_button_color()
+
+        def update_button_color(self) -> None:
+            self.setStyleSheet(
+                f"""
+                QPushButton {{
+                border-style: solid;
+                border-color: black;
+                border-width: 0px;
+                border-radius: 0px;
+                background-color: #{"171d25" if self.is_painted else "9ba2aa"};
+                color: #{"9ba2aa" if self.is_painted else "171d25"};
+                border: none;
+                padding: 0px;
+                font-size: 20px;
+                border-radius: 0px;
+                }}
+                QPushButton:hover {{
+                    background-color: #171d35;
+                }}
+                QPushButton:pressed {{
+                    background-color: #070d15;
+                }}
+            """
+            )
 
     @staticmethod
     def create_button(inscription: str, size: tuple[int, int] = (150, 40)) -> QPushButton:
@@ -298,25 +455,6 @@ class MenuUtils:
         button = QPushButton(inscription)
         button.setFixedSize(size[0], size[1])
         return button
-
-    # @staticmethod
-    # def create_button_layout(*args: QPushButton) -> QHBoxLayout:
-    #     """Собирает полученные кнопки в QHBoxLayout и возвращает его"""
-    #     button_layout = QHBoxLayout()
-    #
-    #     button_layout.addStretch(1)
-    #     for button in args:
-    #         button_layout.addWidget(button, stretch=0)
-    #     button_layout.addStretch(1)
-    #
-    #     return button_layout
-    #
-    # @staticmethod
-    # def create_label_layout(label: QLabel) -> QHBoxLayout:
-    #     """Собирает полученный QLabel в QHBoxLayout и возвращает его"""
-    #     label_layout = QHBoxLayout()
-    #     label_layout.addWidget(label, stretch=0)
-    #     return label_layout
 
     @staticmethod
     def pack_layout(*args: QLabel | QPushButton | QLineEdit) -> QHBoxLayout:
@@ -341,6 +479,7 @@ class MenuUtils:
 
     @staticmethod
     def create_line_edit(inscription: str, validator: QValidator) -> QLineEdit:
+        """Создает и возвращает QLineEdit с поданным валидатором"""
         qline = QLineEdit()
         qline.setValidator(validator)
         qline.setFixedSize(250, 40)

@@ -20,6 +20,22 @@ class Tiling:
             return NotImplemented
         return self._matrix == other._matrix
 
+    def __le__(self, other: "Tiling") -> bool:
+        """
+        Сравнивает две матрицы и возвращает False, если есть хоть одна ячейка, в которой первая
+        матрица имеет 1, а вторая - 0. Иначе - True
+        """
+
+        if self._size != other._size:
+            raise ValueError("Матрицы разного размера")
+
+        for x in range(self._size):
+            for y in range(self._size):
+                if self._matrix[x][y] and not other._matrix[x][y]:
+                    return False
+
+        return True
+
     def __copy__(self) -> "Tiling":
         """Возвращает копию данной укладки"""
         result = Tiling(self._size)

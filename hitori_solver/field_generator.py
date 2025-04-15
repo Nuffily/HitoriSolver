@@ -6,7 +6,7 @@ from hitori_solver.solver import Solver
 from hitori_solver.tiling import Tiling
 
 
-class Generator:
+class FieldGenerator:
     """Генератор полей для Hitori"""
 
     # def generate_hitori_board(self, size):
@@ -147,7 +147,7 @@ class Generator:
     #             return board
     #
     #         print(atts)
-    def generate_hitori_field(self, size: int) -> Field:
+    def generate_hitori_field_3(self, size: int) -> Field:
         """
         Генерирует решаемое поле для головоломки Hitori заданного размера size.
         Возвращает его в виде экземпляра Field
@@ -213,13 +213,92 @@ class Generator:
 
                     field[point_1.x][point_1.y] = was
 
+    def generate_hitori_field(self, size: int) -> Field:
+        """
+        Генерирует решаемое поле для головоломки Hitori заданного размера size.
+        Возвращает его в виде экземпляра Field
+        2 < size < 9
+        """
 
-gen = Generator()
-f = gen.generate_hitori_field(8)
+        if size < 3:
+            raise ValueError("Размер поля должен быть не менее 3x3")
+        elif size > 8:
+            raise ValueError("Размер поля должен быть не более 8x8")
 
-solver = Solver(f)
-solve = solver.solve()
-f.print_painted_over(solve[0])
+        field = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
+
+        for _ in range(10):
+            r1 = random.randint(0, size - 1)
+            r2 = random.randint(0, size - 1)
+            temp_row = field[r1]
+            field[r1] = field[r2]
+            field[r2] = temp_row
+
+            result = Solver(Field(field)).solve()
+
+            if not result:
+                field[r2] = field[r1]
+                field[r1] = temp_row
+
+        atts = 200
+
+        tiling = Tiling(size)
+
+        while True:
+            if atts == 0:
+                return Field(field)
+
+            if random.random() < 0.7:
+                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
+                point_2 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
+
+                if tiling(point_2) or tiling(point_1):
+                    atts -= 1
+                    continue
+
+                temp = field[point_1.x][point_1.y]
+                field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
+                field[point_2.x][point_2.y] = temp
+
+                result = Solver(Field(field)).solve()
+
+                if result:
+                    tiling = result[0]
+                    pass
+                else:
+                    atts -= 1
+
+                    temp = field[point_1.x][point_1.y]
+                    field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
+                    field[point_2.x][point_2.y] = temp
+
+            else:
+                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
+
+                if tiling(point_1):
+                    atts -= 1
+                    continue
+
+                was = field[point_1.x][point_1.y]
+                field[point_1.x][point_1.y] = random.randint(1, size)
+
+                result = Solver(Field(field)).solve()
+
+                if result:
+                    tiling = result[0]
+                    pass
+                else:
+                    atts -= 1
+
+                    field[point_1.x][point_1.y] = was
+
+
+# gen = Generator()
+# f = gen.generate_hitori_field(8)
+#
+# solver = Solver(f)
+# solve = solver.solve()
+# f.print_painted_over(solve[0])
 # while True:
 #     g = gen.generate_hitori_board(8)
 #     f = Field(g)

@@ -1,7 +1,7 @@
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
-from hitori_solver.window_menu import MainMenu, SolverMenu
+from hitori_solver.window_menu import MainMenu, PlayMenu, RulesMenu, SolverMenu
 
 
 class MainWindow(QMainWindow):
@@ -18,12 +18,20 @@ class MainWindow(QMainWindow):
 
         menu = MainMenu()
         solver = SolverMenu()
+        play = PlayMenu()
+        rules = RulesMenu()
 
         self.stacked_widget.addWidget(menu)
         self.stacked_widget.addWidget(solver)
+        self.stacked_widget.addWidget(play)
+        self.stacked_widget.addWidget(rules)
 
         menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(solver))
+        menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(play))
+        menu.button_rules.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(rules))
         solver.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
+        play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
+        rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
 
     # def to_main_menu(self):
     #
