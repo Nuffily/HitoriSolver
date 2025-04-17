@@ -1,7 +1,7 @@
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
-from hitori_solver.window_menu import MainMenu, PlayMenu, RulesMenu, SolverMenu
+from hitori_solver.window_menu import MainMenu, MenuUtils, PlayMenu, RulesMenu, SolverMenu
 
 
 class MainWindow(QMainWindow):
@@ -16,185 +16,72 @@ class MainWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
-        menu = MainMenu()
-        solver = SolverMenu()
-        play = PlayMenu()
-        rules = RulesMenu()
+        # try:
+        #     with open("saved_data.pickle", "rb") as file:
+        #         state = pickle.load(file)
+        #         matr = state.solve_table
+        #         # for x in range(len(state.solve_table)):
+        #         #     for y in range(len(state.solve_table)):
+        #         #         if state.solve_table[x][y]:
+        #         #             self.solver.table.cellWidget(x, y).setText(str(state.solve_table[x][y]))
+        #         #         else:
+        #         #             self.solver.table.removeCellWidget(x, y)
+        #         #             item = QTableWidgetItem()
+        #         #             item.setBackground(QColor(23, 29, 37))
+        #         #             self.solver.table.setItem(x, y, item)
+        #         #         self.play.table.cellWidget(x, y).setText(str(state.play_table[x][y]))
+        #
+        # except (EOFError, pickle.UnpicklingError, TypeError, AttributeError, IndexError) as e:
+        #     print("Сгорел" + str(e))
 
-        self.stacked_widget.addWidget(menu)
-        self.stacked_widget.addWidget(solver)
-        self.stacked_widget.addWidget(play)
-        self.stacked_widget.addWidget(rules)
+        self.menu = MainMenu()
+        self.solver = SolverMenu()
+        self.play = PlayMenu()
+        self.rules = RulesMenu()
 
-        menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(solver))
-        menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(play))
-        menu.button_rules.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(rules))
-        solver.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
-        play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
-        rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(menu))
+        self.stacked_widget.addWidget(self.menu)
+        self.stacked_widget.addWidget(self.solver)
+        self.stacked_widget.addWidget(self.play)
+        self.stacked_widget.addWidget(self.rules)
 
-    # def to_main_menu(self):
-    #
-    #     self.clear()
-    #
-    #     self.image_label = QLabel()
-    #     self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    #     self.load_image("../images/base.png")
-    #     self.main_layout.addWidget(self.image_label, stretch=1)
-    #
-    #     button_layout = QHBoxLayout()
-    #     button_layout.addStretch(1)
-    #
-    #     button_play = QPushButton("Играть")
-    #     button_play.setFixedSize(150, 40)
-    #     button_layout.addWidget(button_play)
-    #
-    #     button_solve = QPushButton("Решить")
-    #     button_solve.setFixedSize(150, 40)
-    #     button_layout.addWidget(button_solve)
-    #
-    #     button_rules = QPushButton("Правила")
-    #     button_rules.setFixedSize(150, 40)
-    #     button_layout.addWidget(button_rules)
-    #
-    #     button_layout.addStretch(1)
-    #     self.main_layout.addLayout(button_layout)
-    #
-    #     button_solve.clicked.connect(self.to_solver)
-    #
-    # def to_solver(self):
-    #
-    #     self.clear()
+        self.menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.solver))
+        self.menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.play))
+        self.menu.button_rules.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.rules))
 
-    #     self.table = QTableWidget(8, 8)
-    #
-    #
-    #     self.table.verticalHeader().hide()
-    #     self.table.horizontalHeader().hide()
-    #
-    #     self.table.resizeColumnsToContents()
-    #     self.table.resizeRowsToContents()
-    #
-    #     self.table.setStyleSheet("""
-    #        QTableWidget {
-    #            background-color: #171d25;
-    #            gridline-color: #333;
-    #        }
-    #        QTableWidget::item {
-    #            background-color: #9ba2aa;  /* Основной цвет ячеек */
-    #            color: #222222;  /* Цвет текста */
-    #            border: 0px solid #171d25;  /* Границы ячеек */
-    #                        font-size: 30px;
-    #        }
-    #        QLineEdit {
-    #            background-color: #dddddd;
-    #            color: #222222;
-    #            border: none;
-    #                        font-size: 30px;
-    #        }
-    #    """)
-    #
-    #     self.table.setFixedSize(
-    #         self.table.horizontalHeader().length() + self.table.verticalHeader().width(),
-    #         self.table.verticalHeader().length() + self.table.horizontalHeader().height(),
-    #     )
-    #
-    #     self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    #     self.table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    #
-    #     validator = QIntValidator()
-    #     validator.setBottom(1)
-    #
-    #     # Заполняем таблицу с валидацией
-    #     for i in range(8):
-    #         for j in range(8):
-    #             item = QTableWidgetItem("0")
-    #
-    #             # item.setBackground(QBrush(QColor(0, 230, 255)))
-    #             # item.setForeground(QBrush(QColor(0, 0, 139)))
-    #
-    #             item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-    #
-    #             # Важно: устанавливаем флаги перед добавлением
-    #             item.setFlags(
-    #             item.flags() | Qt.ItemFlag.ItemIsEditable | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
-    #             )
-    #
-    #             self.table.setItem(i, j, item)
-    #
-    #             # Создаем виджет для ячейки и применяем валидатор
-    #             self.table.setCellWidget(i, j, self._create_validated_cell(validator))
-    #
-    #     button_layout = QHBoxLayout()
-    #
-    #     # button_layout.addWidget(self.table, alignment=Qt.AlignmentFlag.AlignCenter)
-    #
-    #     self.main_layout.addWidget(self.table, alignment=Qt.AlignmentFlag.AlignCenter)
-    #
-    #     button_layout.addStretch(1)
-    #
-    #
-    #
-    #     button_play = QPushButton("Назад")
-    #     button_play.setFixedSize(150, 40)
-    #     button_layout.addWidget(button_play)
-    #
-    #     button_solve = QPushButton("Решить")
-    #     button_solve.setFixedSize(150, 40)
-    #     button_layout.addWidget(button_solve)
-    #
-    #     button_layout.addStretch(1)
-    #     self.main_layout.addLayout(button_layout)
-    #
-    #     button_play.clicked.connect(self.to_main_menu)
-    #
-    # def _create_validated_cell(self, validator):
-    #     """Создает валидируемый виджет для ячейки"""
-    #     widget = QLineEdit()
-    #     widget.setValidator(validator)
-    #     widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    #     return widget
-    #
-    # def get_matrix_values(self):
-    #     matrix = []
-    #     for i in range(self.table.rowCount()):
-    #         row = []
-    #         for j in range(self.table.columnCount()):
-    #             widget = self.table.cellWidget(i, j)
-    #             if widget and isinstance(widget, QLineEdit):
-    #                 text = widget.text()
-    #                 row.append(int(text) if text else 0)
-    #             else:
-    #                 row.append(0.0)
-    #         matrix.append(row)
-    #     print(matrix)
+        self.solver.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
+        self.play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
+        self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
 
-    # def load_image(self, path):
-    #     """Загрузка и масштабирование изображения"""
-    #     pixmap = QPixmap(path)
+    # def closeEvent(self, event):
+    #     state = AppState(self)
+    #     try:
+    #         with open("saved_data.pickle", "wb") as file:
+    #             pickle.dump(state, file)
+    #     except Exception as e:
+    #         print(str(e))
     #
-    #     if not pixmap.isNull():
-    #         pixmap = pixmap.scaled(
-    #             600, 400,
-    #             Qt.AspectRatioMode.KeepAspectRatio,
-    #             Qt.TransformationMode.SmoothTransformation
-    #         )
-    #         self.image_label.setPixmap(pixmap)
-    #
-    # def clear(self):
-    #
-    #     old_central = self.centralWidget()
-    #     if old_central:
-    #         old_central.deleteLater()
+    #     event.accept()
 
-    # central_widget = QWidget()
-    # self.setCentralWidget(central_widget)
-    # self.main_layout = QVBoxLayout()
-    # central_widget.setLayout(self.main_layout)
+
+class AppState:
+    def __init__(self, main: MainWindow):
+        self.solve_table = MenuUtils.get_matrix(main.solver.table)
+        self.solve_state = main.solver.info_label.text()
+        self.play_table = MenuUtils.get_matrix(main.play.table)
+        self.play_state = main.play.info_label.text()
+        print(self.solve_table)
+        print(main.play.table.cellWidget(1, 1).text())
 
 
 def start() -> None:
     app = QApplication([])
+    configure_app(app)
+    window = MainWindow()
+    window.show()
+    app.exec()
+
+
+def configure_app(app: QApplication) -> None:
     app.setStyleSheet(
         """
         QMainWindow {
@@ -224,8 +111,7 @@ def start() -> None:
         QTableWidget::item {
             padding: 0px 0px ;
             font-size: 12px;
-    }
-
+        }
         QLineEdit {
             background-color: #9ba2aa;
             color: #171d25;
@@ -251,13 +137,8 @@ def start() -> None:
         background-color: 171d25;  /* Цвет фона выделенного элемента */
         color: 9ba2aa;                 /* Цвет текста выделенного элемента */
         }
-
     """
     )
-    window = MainWindow()
-
-    window.show()
-    app.exec()
 
 
 if __name__ == "__main__":

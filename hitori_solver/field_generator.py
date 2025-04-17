@@ -1,4 +1,5 @@
 import random
+from typing import Callable
 
 from hitori_solver.field import Field
 from hitori_solver.shared_models import Cell
@@ -9,145 +10,53 @@ from hitori_solver.tiling import Tiling
 class FieldGenerator:
     """Генератор полей для Hitori"""
 
-    # def generate_hitori_board(self, size):
-    #     """
-    #     Генерирует поле для головоломки Hitori заданного размера и сложности.
-    #
-    #     Параметры:
-    #     size - размер поля (size x size)
-    #     difficulty - уровень сложности ('easy', 'medium', 'hard')
-    #
-    #     Возвращает:
-    #     Двумерный список (матрицу) с числами от 1 до size
-    #     """
-    #
-    #     # Проверка входных параметров
-    #     if size < 3:
-    #         raise ValueError("Размер поля должен быть не менее 3x3")
-    #
-    #     # Генерация базового поля (каждое число от 1 до size встречается в каждой строке и столбце)
-    #     board = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
-    #
-    #     atts = 200
-    #
-    #
-    #     while True:
-    #
-    #         solves = 1000
-    #         # Выбираем случайную строку или столбец и меняем местами две ячейки
-    #         if random.random() < 0.75:
-    #             # Перемешиваем строку
-    #             point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #             point_2 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #             temp = board[point_1.x][point_1.y]
-    #             board[point_1.x][point_1.y] = board[point_2.x][point_2.y]
-    #             board[point_2.x][point_2.y] = temp
-    #
-    #             result = len(Solver(Field(board)).solve())
-    #
-    #             # if result > 0 & result <= solves:
-    #             #     solves = result
-    #             #     pass
-    #             if result > 0:
-    #                 pass
-    #             else:
-    #                 atts -= 1
-    #
-    #                 temp = board[point_1.x][point_1.y]
-    #                 board[point_1.x][point_1.y] = board[point_2.x][point_2.y]
-    #                 board[point_2.x][point_2.y] = temp
-    #
-    #         else:
-    #             point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #             was = board[point_1.x][point_1.y]
-    #             board[point_1.x][point_1.y] = random.randint(1, size)
-    #
-    #             result = len(Solver(Field(board)).solve())
-    #
-    #             # if result > 0 & result <= solves:
-    #             #     solves = result
-    #             #     pass
-    #             if result > 0:
-    #                 pass
-    #             else:
-    #                 atts -= 1
-    #
-    #                 board[point_1.x][point_1.y] = was
-    #
-    #         if atts == 0:
-    #             return board
-    #
-    # def hash_generate_hitori_board(self, size):
-    #     """
-    #     Генерирует поле для головоломки Hitori заданного размера и сложности.
-    #
-    #     Параметры:
-    #     size - размер поля (size x size)
-    #     difficulty - уровень сложности ('easy', 'medium', 'hard')
-    #
-    #     Возвращает:
-    #     Двумерный список (матрицу) с числами от 1 до size
-    #     """
-    #
-    #     # Проверка входных параметров
-    #     if size < 3:
-    #         raise ValueError("Размер поля должен быть не менее 3x3")
-    #
-    #     # Генерация базового поля (каждое число от 1 до size встречается в каждой строке и столбце)
-    #     board = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
-    #
-    #     atts = 2000
-    #
-    #
-    #     while True:
-    #
-    #         painted = 0
-    #         # Выбираем случайную строку или столбец и меняем местами две ячейки
-    #         if random.random() < 0.75:
-    #             # Перемешиваем строку
-    #             point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #             point_2 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #
-    #             temp = board[point_1.x][point_1.y]
-    #             board[point_1.x][point_1.y] = board[point_2.x][point_2.y]
-    #             board[point_2.x][point_2.y] = temp
-    #
-    #             result = Solver(Field(board)).solve()
-    #             # if result > 0 & result <= solves:
-    #             #     solves = result
-    #             #     pass
-    #             if result and result[0].__hash__() >= painted:
-    #                 painted = result[0].__hash__()
-    #                 pass
-    #             else:
-    #                 atts -= 1
-    #
-    #                 temp = board[point_1.x][point_1.y]
-    #                 board[point_1.x][point_1.y] = board[point_2.x][point_2.y]
-    #                 board[point_2.x][point_2.y] = temp
-    #
-    #         else:
-    #             point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-    #             was = board[point_1.x][point_1.y]
-    #             board[point_1.x][point_1.y] = random.randint(1, size)
-    #
-    #             result = Solver(Field(board)).solve()
-    #             # if result > 0 & result <= solves:
-    #             #     solves = result
-    #             #     pass
-    #             if result and result[0].__hash__() >= painted:
-    #                 painted = result[0].__hash__()
-    #                 pass
-    #             else:
-    #                 atts -= 1
-    #
-    #                 board[point_1.x][point_1.y] = was
-    #
-    #         if atts == 0:
-    #             return board
-    #
-    #         print(atts)
-    def generate_hitori_field_3(self, size: int) -> Field:
+    def _swap_cells(self, matrix: list[list[int]], first: Cell, second: Cell) -> Callable[[], None]:
+        """
+        Меняет местами 2 ячейки поданной матрицы.
+        Возвращает функцию, которая откатывает обмен
+        """
+
+        temp = matrix[first.x][first.y]
+        matrix[first.x][first.y] = matrix[second.x][second.y]
+        matrix[second.x][second.y] = temp
+
+        def undo() -> None:
+            matrix[second.x][second.y] = matrix[first.x][first.y]
+            matrix[first.x][first.y] = temp
+
+        return undo
+
+    def _swap_rows(self, matrix: list[list[int]], first: int, second: int) -> Callable[[], None]:
+        """
+        Меняет местами 2 строки поданной матрицы.
+        Возвращает функцию, которая откатывает обмен
+        """
+
+        temp = matrix[first]
+        matrix[first] = matrix[second]
+        matrix[second] = temp
+
+        def undo() -> None:
+            matrix[second] = matrix[first]
+            matrix[first] = temp
+
+        return undo
+
+    def _change_value(self, matrix: list[list[int]], cell: Cell, value: int) -> Callable[[], None]:
+        """
+        Меняет значение ячейки поданной матрицы.
+        Возвращает функцию, которая возвращает в ячейку старое значение
+        """
+
+        temp = matrix[cell.x][cell.y]
+        matrix[cell.x][cell.y] = value
+
+        def undo() -> None:
+            matrix[cell.x][cell.y] = temp
+
+        return undo
+
+    def generate_hitori_field(self, size: int) -> list[list[int]]:
         """
         Генерирует решаемое поле для головоломки Hitori заданного размера size.
         Возвращает его в виде экземпляра Field
@@ -159,156 +68,64 @@ class FieldGenerator:
         elif size > 8:
             raise ValueError("Размер поля должен быть не более 8x8")
 
-        field = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
+        matrix = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
 
-        atts = 1000
+        # Перемешиваем строки
+        for _ in range(12):
+            row_1 = random.randint(0, size - 1)
+            row_2 = random.randint(0, size - 1)
 
-        tiling = Tiling(size)
+            undo = self._swap_rows(matrix, row_1, row_2)
 
-        while True:
-            if atts == 0:
-                return Field(field)
-
-            if random.random() < 0.75:
-                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-                point_2 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-
-                if tiling(point_2) or tiling(point_1):
-                    atts -= 1
-                    continue
-
-                temp = field[point_1.x][point_1.y]
-                field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
-                field[point_2.x][point_2.y] = temp
-
-                result = Solver(Field(field)).solve()
-
-                if result:
-                    tiling = result[0]
-                    pass
-                else:
-                    atts -= 1
-
-                    temp = field[point_1.x][point_1.y]
-                    field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
-                    field[point_2.x][point_2.y] = temp
-
-            else:
-                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
-
-                if tiling(point_1):
-                    atts -= 1
-                    continue
-
-                was = field[point_1.x][point_1.y]
-                field[point_1.x][point_1.y] = random.randint(1, size)
-
-                result = Solver(Field(field)).solve()
-
-                if result:
-                    tiling = result[0]
-                    pass
-                else:
-                    atts -= 1
-
-                    field[point_1.x][point_1.y] = was
-
-    def generate_hitori_field(self, size: int) -> Field:
-        """
-        Генерирует решаемое поле для головоломки Hitori заданного размера size.
-        Возвращает его в виде экземпляра Field
-        2 < size < 9
-        """
-
-        if size < 3:
-            raise ValueError("Размер поля должен быть не менее 3x3")
-        elif size > 8:
-            raise ValueError("Размер поля должен быть не более 8x8")
-
-        field = [[(i + j) % size + 1 for i in range(size)] for j in range(size)]
-
-        for _ in range(10):
-            r1 = random.randint(0, size - 1)
-            r2 = random.randint(0, size - 1)
-            temp_row = field[r1]
-            field[r1] = field[r2]
-            field[r2] = temp_row
-
-            result = Solver(Field(field)).solve()
+            result = Solver(Field(matrix)).solve()
 
             if not result:
-                field[r2] = field[r1]
-                field[r1] = temp_row
+                undo()
 
-        atts = 200
+        attempts = 100
 
         tiling = Tiling(size)
 
         while True:
-            if atts == 0:
-                return Field(field)
+            if not attempts:
+                return matrix
 
+            # Меняем местами две ячейки
             if random.random() < 0.7:
-                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
+                point = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
                 point_2 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
 
-                if tiling(point_2) or tiling(point_1):
-                    atts -= 1
+                if tiling(point_2) or tiling(point):
+                    attempts -= 1
                     continue
 
-                temp = field[point_1.x][point_1.y]
-                field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
-                field[point_2.x][point_2.y] = temp
+                undo = self._swap_cells(matrix, point, point_2)
 
-                result = Solver(Field(field)).solve()
+                result = Solver(Field(matrix)).solve()
 
                 if result:
                     tiling = result[0]
                     pass
                 else:
-                    atts -= 1
+                    attempts -= 1
+                    undo()
 
-                    temp = field[point_1.x][point_1.y]
-                    field[point_1.x][point_1.y] = field[point_2.x][point_2.y]
-                    field[point_2.x][point_2.y] = temp
-
+            # Меняем значение одной ячейки
             else:
-                point_1 = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
+                point = Cell(random.randint(0, size - 1), random.randint(0, size - 1))
 
-                if tiling(point_1):
-                    atts -= 1
+                if tiling(point):
+                    attempts -= 1
                     continue
 
-                was = field[point_1.x][point_1.y]
-                field[point_1.x][point_1.y] = random.randint(1, size)
+                undo = self._change_value(matrix, point, random.randint(1, size))
 
-                result = Solver(Field(field)).solve()
+                result = Solver(Field(matrix)).solve()
 
                 if result:
                     tiling = result[0]
                     pass
                 else:
-                    atts -= 1
+                    attempts -= 1
 
-                    field[point_1.x][point_1.y] = was
-
-
-# gen = Generator()
-# f = gen.generate_hitori_field(8)
-#
-# solver = Solver(f)
-# solve = solver.solve()
-# f.print_painted_over(solve[0])
-# while True:
-#     g = gen.generate_hitori_board(8)
-#     f = Field(g)
-#     solver = Solver(f)
-#     solve = solver.solve()
-#     if solve:
-#         for r in g:
-#             print(r)
-#
-#         for s in solve:
-#             f.print_painted_over(s)
-#         print(len(solve))
-#         break
+                    undo()
