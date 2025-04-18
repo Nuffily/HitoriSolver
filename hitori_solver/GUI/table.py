@@ -2,10 +2,10 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QValidator
 from PyQt6.QtWidgets import QLineEdit, QPushButton, QTableWidget, QTableWidgetItem
 
-from hitori_solver.field import Field
-from hitori_solver.shared_models import Cell
-from hitori_solver.solver import Solver
-from hitori_solver.tiling import Tiling
+from hitori_solver.hitori.field import Field
+from hitori_solver.GUI.shared_models import Cell
+from hitori_solver.hitori.solver import Solver
+from hitori_solver.hitori.tiling import Tiling
 
 
 class Table(QTableWidget):
@@ -33,7 +33,7 @@ class Table(QTableWidget):
                color: #171d25;
                border: none;
                font-size: 25px;
-               padding: 2px 2px ;
+               padding: 2px 2px;
            }
             QTableWidget::item:selected {
                 background-color: #171d25;
@@ -98,6 +98,7 @@ class Table(QTableWidget):
         return matrix
 
     def set_text_in_cells(self, matrix: list[list[int]]) -> None:
+        """Записывает значения из matrix в таблицу"""
         for x in range(self.size):
             for y in range(self.size):
                 widget = self.cellWidget(x, y)
@@ -107,6 +108,7 @@ class Table(QTableWidget):
                     widget.setText("")
 
     def toggle_cells(self, matrix: list[list[bool]]) -> None:
+        """Переключает в закрашенное состояние кнопки таблицы соответствующие единицам в matrix"""
         for x in range(self.size):
             for y in range(self.size):
                 widget = self.cellWidget(x, y)
@@ -114,12 +116,14 @@ class Table(QTableWidget):
                     widget.toggle_color()
 
     def paint_over_cells(self, matrix: list[list[bool]]) -> None:
+        """Закрашивает ячейки таблицы соответствующие единицам в matrix"""
         for x in range(self.size):
             for y in range(self.size):
                 if matrix[x][y]:
-                    self.paint_over(x, y)
+                    self._paint_over(x, y)
 
     def get_painted_cells(self) -> list[list[bool]]:
+        """Возвращает булеву таблицу, единицы в которой соответствуют закрашенным ячейкам"""
         matrix = [[False] * self.size for _ in range(self.size)]
         for x in range(self.size):
             for y in range(self.size):
@@ -130,10 +134,11 @@ class Table(QTableWidget):
         return matrix
 
     def solve(self) -> list[Tiling]:
+        """Обращает значения таблицы в поле hitori и возвращает список решений для этого поля"""
         return Solver(Field(self.get_matrix())).solve()
 
     def fill_with_lines(self, validator: QValidator) -> None:
-        """Форматирует ячейку QTable по координатам (x, y), добавляя в нее validator"""
+        """Забивает ячейки таблицы с QLineEdit с поданным валидатором"""
         for x in range(self.size):
             for y in range(self.size):
                 valid_line_edit = QLineEdit()
@@ -141,7 +146,8 @@ class Table(QTableWidget):
                 valid_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.setCellWidget(x, y, valid_line_edit)
 
-    def paint_over(self, x: int, y: int) -> None:
+    def _paint_over(self, x: int, y: int) -> None:
+        """Закрашивает ячейку таблицы по поданным координатам"""
         self.removeCellWidget(x, y)
         item = QTableWidgetItem()
         item.setBackground(QColor(23, 29, 37))
@@ -151,7 +157,7 @@ class Table(QTableWidget):
         """
         Пытается решить введенное в self.field поле Hitori
         При нахождении такового закрашивает клетки соответствующие первому найденному решению
-        Результат работы выписывает в self.info_label
+        При не наличии решений выдает ValueError
         """
 
         for x in range(self.size):
@@ -168,22 +174,25 @@ class Table(QTableWidget):
         for x in range(self.size):
             for y in range(self.size):
                 if tiling(Cell(x, y)):
-                    self.paint_over(x, y)
+                    self._paint_over(x, y)
 
         self.setEnabled(False)
 
     class ToggleButton(QPushButton):
+        """Класс расширяющий QPushButton, которой при нажатии переключает цвет"""
         def __init__(self, inscr: str) -> None:
             super().__init__(inscr)
             self.clicked.connect(self.toggle_color)
             self.is_painted = False
-            self.update_button_color()
+            self._update_button_color()
 
         def toggle_color(self) -> None:
+            """Переключает цвет кнопки"""
             self.is_painted = not self.is_painted
-            self.update_button_color()
+            self._update_button_color()
 
-        def update_button_color(self) -> None:
+        def _update_button_color(self) -> None:
+            """Переключает цвет кнопки"""
             self.setStyleSheet(
                 f"""
                 QPushButton {{

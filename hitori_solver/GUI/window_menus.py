@@ -3,9 +3,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator, QValidator
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from hitori_solver.field_generator import FieldGenerator
-from hitori_solver.shared_models import Cell, TableState
-from hitori_solver.table import Table
+from hitori_solver.hitori.field_generator import FieldGenerator
+from hitori_solver.GUI.shared_models import Cell, TableState
+from hitori_solver.GUI.table import Table
 
 
 class MainMenu(QWidget):
@@ -16,7 +16,7 @@ class MainMenu(QWidget):
 
         self.main_layout = QVBoxLayout()
 
-        self.image_label = self.create_image_label("../images/base.png")
+        self.image_label = self._create_image_label("../images/base.png")
         self.main_layout.addWidget(self.image_label, stretch=1)
 
         self.button_play = MenuUtils.create_button("Играть")
@@ -27,7 +27,7 @@ class MainMenu(QWidget):
 
         self.setLayout(self.main_layout)
 
-    def create_image_label(self, path: str) -> QLabel:
+    def _create_image_label(self, path: str) -> QLabel:
         """Загружает изображение и возвращает QLabel с ним"""
         pixmap = QPixmap(path)
         image_label = QLabel()
@@ -37,6 +37,8 @@ class MainMenu(QWidget):
                 600, 400, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
             )
             image_label.setPixmap(pixmap)
+        else:
+            print("123")
 
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         return image_label
@@ -94,7 +96,6 @@ class SolverMenu(QWidget):
 
     def _recreate_field(self, size: int) -> None:
         """Пересоздает Table размера size и добавляет ее в main_layout"""
-
         MenuUtils.unlock_buttons(self.button_solve)
         if size < 3 or size > 10:
             self.info_label.setText("Размер поля должен быть в пределах от 3 до 10")
@@ -106,7 +107,6 @@ class SolverMenu(QWidget):
         self.table = self._create_table_field(size)
 
         self.info_label.setText("Введите поля таблицы")
-
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
     def _create_table_field(self, size: int) -> Table:
@@ -194,13 +194,17 @@ class PlayMenu(QWidget):
         if size < 3 or size > 8:
             self.info_label.setText("Размер поля должен быть в пределах от 3 до 8")
             return
-
         self.main_layout.removeWidget(self.table)
         self.table.deleteLater()
 
         self.table = self._create_table_field(size, self.generator.generate_hitori_field(size))
 
+        # for x in range(self.table.size):
+        #     for y in range(self.table.size):
+        #         print(str(self.table.cellWidget(x,y)))
+
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
+
 
     def _create_table_field(self, size: int, field: list[list[int]]) -> "Table":
         """Создает Table заданного размера c кнопка, в которых записываются значения из field"""
@@ -346,8 +350,8 @@ class MenuUtils:
             button.setStyleSheet(
                 """QPushButton {
                 background-color: #171d25;
-                color: #;
-                border: none;9ba2aa
+                color: #9ba2aa;
+                border: none;
                 padding: 10px 20px;
                 font-size: 16px;
                 border-radius: 5px;

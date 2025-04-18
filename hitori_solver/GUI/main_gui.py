@@ -4,11 +4,12 @@ from enum import IntEnum
 from PyQt6.QtGui import QCloseEvent, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
-from hitori_solver.shared_models import TableState
-from hitori_solver.window_menu import MainMenu, PlayMenu, RulesMenu, SolverMenu
+from hitori_solver.GUI.shared_models import TableState
+from hitori_solver.GUI.window_menus import MainMenu, PlayMenu, RulesMenu, SolverMenu
 
 
 class MainWindow(QMainWindow):
+    """Основное окно программы"""
     def __init__(self) -> None:
         super().__init__()
 
@@ -26,14 +27,13 @@ class MainWindow(QMainWindow):
         current_widget = MainWidget.MAIN
 
         try:
-            with open("../saved_data.pickle", "rb") as file:
+            with open("../../saved_data.pickle", "rb") as file:
                 state: AppState = pickle.load(file)
                 self.solver = SolverMenu(state.solver, state.solver_text)
                 self.play = PlayMenu(state.play, state.play_text)
                 current_widget = state.current_widget
 
-        except (EOFError, FileNotFoundError, TypeError, AttributeError, IndexError) as e:
-            print("Сгорел" + str(e))
+        except (EOFError, FileNotFoundError, TypeError, AttributeError, IndexError):
             self.solver = SolverMenu()
             self.play = PlayMenu()
 
@@ -61,18 +61,20 @@ class MainWindow(QMainWindow):
         self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
+        """Сохраняет состояние при выходе"""
         try:
             state = AppState(self)
-            with open("../saved_data.pickle", "wb") as file:
+            with open("../../saved_data.pickle", "wb") as file:
                 pickle.dump(state, file)
         except Exception as e:
-            print(str(e))
+            print("Не возможно сохранить. ", str(e))
 
         if event:
             event.accept()
 
 
 class AppState:
+    """Содержит нужную информацию о MainWindow для ее сохранения"""
     def __init__(self, main: MainWindow):
         self.solver_text: str = main.solver.info_label.text()
 
@@ -101,6 +103,7 @@ class AppState:
 
 
 class MainWidget(IntEnum):
+    """Определяет окно класса MainWindow"""
     MAIN = 0
     SOLVER = 1
     PLAY = 2
@@ -139,8 +142,8 @@ def configure_app(app: QApplication) -> None:
             background-color: #3c3f41;
             gridline-color: #000000;
             color: #000000;
-                        padding: 0px 0px ;
-                                    font-size: 12px;
+            padding: 0px 0px;
+            font-size: 12px;
         }
         QTableWidget::item {
             padding: 0px 0px ;
@@ -161,15 +164,14 @@ def configure_app(app: QApplication) -> None:
         QLabel {
             color: #9ba2aa;
             font-size: 20px;
-
         }
         QMainWindow {
             background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
             stop:0 #1a3143, stop:1 #1b3239);
         }
         QLineEdit::item:selected {
-        background-color: 171d25;  /* Цвет фона выделенного элемента */
-        color: 9ba2aa;                 /* Цвет текста выделенного элемента */
+        background-color: 171d25; 
+        color: 9ba2aa;
         }
     """
     )

@@ -1,7 +1,7 @@
 import queue
 from copy import deepcopy
 
-from hitori_solver.shared_models import Cell
+from hitori_solver.GUI.shared_models import Cell
 
 
 class Tiling:

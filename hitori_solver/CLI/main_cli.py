@@ -1,6 +1,6 @@
 import click
 
-from hitori_solver.handler import Handler
+from hitori_solver.CLI.handler import Handler
 
 
 def interactive_loop() -> None:
