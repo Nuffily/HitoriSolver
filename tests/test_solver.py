@@ -1,7 +1,7 @@
 import pytest
 
-from hitori_solver.field import Field
-from hitori_solver.solver import Solver
+from hitori_solver.hitori.field import Field
+from hitori_solver.hitori.solver import Solver
 
 
 class TestSolver:
