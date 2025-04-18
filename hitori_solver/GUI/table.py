@@ -1,6 +1,8 @@
+from typing import cast
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QValidator
-from PyQt6.QtWidgets import QLineEdit, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QHeaderView, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem
 
 from hitori_solver.GUI.shared_models import Cell
 from hitori_solver.hitori.field import Field
@@ -13,9 +15,13 @@ class Table(QTableWidget):
 
     def __init__(self, size: int):
         super().__init__(size, size)
-        self.size = size
-        self.verticalHeader().hide()
-        self.horizontalHeader().hide()
+
+        vertical = cast(QHeaderView, self.verticalHeader())
+        horizontal = cast(QHeaderView, self.horizontalHeader())
+
+        self.matrix_size = size
+        vertical.hide()
+        horizontal.hide()
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
 
@@ -42,27 +48,24 @@ class Table(QTableWidget):
         """
         )
 
-        self.setFixedSize(
-            self.horizontalHeader().length() + self.verticalHeader().width(),
-            self.verticalHeader().length() + self.horizontalHeader().height(),
-        )
+        self.setFixedSize(horizontal.length() + vertical.width(), vertical.length() + horizontal.height())
 
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
     def fill_with_buttons(self, matrix: list[list[int]]) -> None:
         """Добавляет в каждую ячейку таблицы ToggleButton с текстом из поданной матрицы"""
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 self.setCellWidget(x, y, self.ToggleButton(str(matrix[x][y])))
 
     def get_matrix(self) -> list[list[int]]:
         """Возвращает матрицу значений Table"""
         matrix = []
 
-        for x in range(self.size):
+        for x in range(self.matrix_size):
             row = []
-            for y in range(self.size):
+            for y in range(self.matrix_size):
                 widget = self.cellWidget(x, y)
                 if widget and isinstance(widget, QLineEdit | QPushButton):
                     text = widget.text()
@@ -77,8 +80,8 @@ class Table(QTableWidget):
         """Возвращает Tiling из закрашенных ячеек таблицы"""
         tiling = Tiling(self.rowCount())
 
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 widget = self.cellWidget(x, y)
                 if widget and isinstance(widget, self.ToggleButton) and widget.is_painted:
                     tiling.paint_over(Cell(x, y))
@@ -87,9 +90,9 @@ class Table(QTableWidget):
 
     def get_toggled_cells(self) -> list[list[bool]]:
         """Возвращает матрицу соответствующую закрашенным ячейкам, если те - ToggleButton"""
-        matrix = [[False] * self.size for _ in range(self.size)]
-        for x in range(self.size):
-            for y in range(self.size):
+        matrix = [[False] * self.matrix_size for _ in range(self.matrix_size)]
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 widget = self.cellWidget(x, y)
                 if isinstance(widget, self.ToggleButton) and widget.is_painted:
                     matrix[x][y] = True
@@ -99,34 +102,35 @@ class Table(QTableWidget):
 
     def set_text_in_cells(self, matrix: list[list[int]]) -> None:
         """Записывает значения из matrix в таблицу"""
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 widget = self.cellWidget(x, y)
-                if matrix[x][y] and isinstance(widget, self.ToggleButton | QLineEdit):
-                    widget.setText(str(matrix[x][y]))
-                else:
-                    widget.setText("")
+                if isinstance(widget, self.ToggleButton | QLineEdit):
+                    if matrix[x][y]:
+                        widget.setText(str(matrix[x][y]))
+                    else:
+                        widget.setText("")
 
     def toggle_cells(self, matrix: list[list[bool]]) -> None:
         """Переключает в закрашенное состояние кнопки таблицы соответствующие единицам в matrix"""
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 widget = self.cellWidget(x, y)
                 if matrix[x][y] and isinstance(widget, self.ToggleButton) and not widget.is_painted:
                     widget.toggle_color()
 
     def paint_over_cells(self, matrix: list[list[bool]]) -> None:
         """Закрашивает ячейки таблицы соответствующие единицам в matrix"""
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 if matrix[x][y]:
                     self._paint_over(x, y)
 
     def get_painted_cells(self) -> list[list[bool]]:
         """Возвращает булеву таблицу, единицы в которой соответствуют закрашенным ячейкам"""
-        matrix = [[False] * self.size for _ in range(self.size)]
-        for x in range(self.size):
-            for y in range(self.size):
+        matrix = [[False] * self.matrix_size for _ in range(self.matrix_size)]
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 if not self.cellWidget(x, y):
                     matrix[x][y] = True
                 else:
@@ -139,8 +143,8 @@ class Table(QTableWidget):
 
     def fill_with_lines(self, validator: QValidator) -> None:
         """Забивает ячейки таблицы с QLineEdit с поданным валидатором"""
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 valid_line_edit = QLineEdit()
                 valid_line_edit.setValidator(validator)
                 valid_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -160,19 +164,20 @@ class Table(QTableWidget):
         При не наличии решений выдает ValueError
         """
 
-        for x in range(self.size):
-            for y in range(self.size):
-                if isinstance(self.cellWidget(x, y), self.ToggleButton):
-                    if self.cellWidget(x, y).is_painted:
-                        self.cellWidget(x, y).toggle_color()
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
+                widget = self.cellWidget(x, y)
+                if isinstance(widget, self.ToggleButton):
+                    if widget.is_painted:
+                        widget.toggle_color()
 
         try:
             tiling = self.solve()[0]
         except IndexError:
             raise ValueError("Решений нет")
 
-        for x in range(self.size):
-            for y in range(self.size):
+        for x in range(self.matrix_size):
+            for y in range(self.matrix_size):
                 if tiling(Cell(x, y)):
                     self._paint_over(x, y)
 

@@ -4,7 +4,7 @@ from enum import IntEnum
 from PyQt6.QtGui import QCloseEvent, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
-from hitori_solver.GUI.shared_models import TableState
+from hitori_solver.GUI.shared_models import MenuState
 from hitori_solver.GUI.window_menus import MainMenu, PlayMenu, RulesMenu, SolverMenu
 
 
@@ -15,54 +15,65 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Hitori")
-        self.setWindowIcon(QIcon("../images/icon.png"))
+        self.setWindowIcon(QIcon("../../images/icon.png"))
 
         self.resize(800, 800)
 
-        self.stacked_widget = QStackedWidget()
-        self.setCentralWidget(self.stacked_widget)
+        self._stacked_widget = QStackedWidget()
+        self.setCentralWidget(self._stacked_widget)
 
-        self.menu = MainMenu()
-        self.rules = RulesMenu()
+        self._menu = MainMenu()
+        self._rules = RulesMenu()
 
         current_widget = MainWidget.MAIN
 
         try:
             with open("../../saved_data.pickle", "rb") as file:
                 state: AppState = pickle.load(file)
-                self.solver = SolverMenu(state.solver, state.solver_text)
-                self.play = PlayMenu(state.play, state.play_text)
+                self.play = PlayMenu(state.play_state.table_state, state.play_state.text)
+                self.solver = SolverMenu(state.solver_state.table_state, state.solver_state.text)
                 current_widget = state.current_widget
 
         except (EOFError, FileNotFoundError, TypeError, AttributeError, IndexError):
             self.solver = SolverMenu()
             self.play = PlayMenu()
 
-        self.stacked_widget.addWidget(self.menu)
-        self.stacked_widget.addWidget(self.solver)
-        self.stacked_widget.addWidget(self.play)
-        self.stacked_widget.addWidget(self.rules)
+        self._stacked_widget.addWidget(self._menu)
+        self._stacked_widget.addWidget(self.solver)
+        self._stacked_widget.addWidget(self.play)
+        self._stacked_widget.addWidget(self._rules)
 
-        self.stacked_widget.setCurrentWidget(self.get_widget_from_enum(current_widget))
+        self._stacked_widget.setCurrentWidget(self._enum_to_widget(current_widget))
 
-        self.menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.solver))
-        self.menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.play))
-        self.menu.button_rules.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.rules))
+        self._menu.button_solve.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self.solver))
+        self._menu.button_play.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self.play))
+        self._menu.button_rules.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self._rules))
 
-        self.solver.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
-        self.play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
-        self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
+        self.solver.button_menu.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self._menu))
+        self.play.button_menu.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self._menu))
+        self._rules.button_menu.clicked.connect(lambda: self._stacked_widget.setCurrentWidget(self._menu))
 
-    def get_widget_from_enum(self, current_widget: "MainWidget") -> QWidget:
+    def _enum_to_widget(self, current_widget: "MainWidget") -> QWidget:
         """Возвращает QWidget из self, cоответствующий enum'у current_widget"""
         if current_widget == MainWidget.MAIN:
-            return self.menu
+            return self._menu
         elif current_widget == MainWidget.SOLVER:
             return self.solver
         elif current_widget == MainWidget.PLAY:
             return self.play
         elif current_widget == MainWidget.RULES:
-            return self.rules
+            return self._rules
+
+    def widget_to_enum(self) -> "MainWidget":
+        """Возвращает enum MainWidget, соответсвующий текущему QWidget"""
+        if self._stacked_widget.currentWidget() == self._rules:
+            return MainWidget.RULES
+        elif self._stacked_widget.currentWidget() == self.solver:
+            return MainWidget.SOLVER
+        elif self._stacked_widget.currentWidget() == self.play:
+            return MainWidget.PLAY
+        else:
+            return MainWidget.MAIN
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         """Сохраняет состояние при выходе"""
@@ -81,30 +92,9 @@ class AppState:
     """Содержит нужную информацию о MainWindow для ее сохранения"""
 
     def __init__(self, main: MainWindow):
-        self.solver_text: str = main.solver.info_label.text()
-
-        self.solver: TableState = TableState(
-            text=main.solver.table.get_matrix(),
-            painted=main.solver.table.get_painted_cells(),
-            toggled=None,
-            size=main.solver.table.size,
-        )
-        self.play_text: str = main.play.info_label.text()
-
-        self.play: TableState = TableState(
-            text=main.play.table.get_matrix(),
-            painted=main.play.table.get_painted_cells(),
-            toggled=main.play.table.get_toggled_cells(),
-            size=main.play.table.size,
-        )
-        self.current_widget: MainWidget = MainWidget.MAIN
-
-        if main.stacked_widget.currentWidget() == main.rules:
-            self.current_widget = MainWidget.RULES
-        elif main.stacked_widget.currentWidget() == main.solver:
-            self.current_widget = MainWidget.SOLVER
-        elif main.stacked_widget.currentWidget() == main.play:
-            self.current_widget = MainWidget.PLAY
+        self.solver_state: MenuState = main.solver.get_state()
+        self.play_state: MenuState = main.play.get_state()
+        self.current_widget: MainWidget = main.widget_to_enum()
 
 
 class MainWidget(IntEnum):
@@ -117,6 +107,7 @@ class MainWidget(IntEnum):
 
 
 def start() -> None:
+    """Запускает программу"""
     app = QApplication([])
     configure_app(app)
     window = MainWindow()
@@ -125,6 +116,7 @@ def start() -> None:
 
 
 def configure_app(app: QApplication) -> None:
+    """Конфигурирует внешний вид программы"""
     app.setStyleSheet(
         """
         QMainWindow {

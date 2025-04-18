@@ -6,8 +6,13 @@ class Cell(NamedTuple):
     y: int
 
 
+class MenuState(NamedTuple):
+    table_state: "TableState"
+    text: str
+
+
 class TableState(NamedTuple):
-    text: list[list[int]]
+    values: list[list[int]]
     toggled: list[list[bool]] | None
     painted: list[list[bool]]
     size: int
