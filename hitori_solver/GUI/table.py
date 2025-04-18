@@ -180,6 +180,7 @@ class Table(QTableWidget):
 
     class ToggleButton(QPushButton):
         """Класс расширяющий QPushButton, которой при нажатии переключает цвет"""
+
         def __init__(self, inscr: str) -> None:
             super().__init__(inscr)
             self.clicked.connect(self.toggle_color)

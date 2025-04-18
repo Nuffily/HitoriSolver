@@ -10,6 +10,7 @@ from hitori_solver.GUI.window_menus import MainMenu, PlayMenu, RulesMenu, Solver
 
 class MainWindow(QMainWindow):
     """Основное окно программы"""
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -42,15 +43,7 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.play)
         self.stacked_widget.addWidget(self.rules)
 
-        if current_widget:
-            if current_widget == MainWidget.MAIN:
-                self.stacked_widget.setCurrentWidget(self.menu)
-            elif current_widget == MainWidget.SOLVER:
-                self.stacked_widget.setCurrentWidget(self.solver)
-            elif current_widget == MainWidget.PLAY:
-                self.stacked_widget.setCurrentWidget(self.play)
-            elif current_widget == MainWidget.RULES:
-                self.stacked_widget.setCurrentWidget(self.rules)
+        self.stacked_widget.setCurrentWidget(self.get_widget_from_enum(current_widget))
 
         self.menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.solver))
         self.menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.play))
@@ -59,6 +52,16 @@ class MainWindow(QMainWindow):
         self.solver.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
         self.play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
         self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
+
+    def get_widget_from_enum(self, current_widget: "MainWidget"):
+        if current_widget == MainWidget.MAIN:
+            return self.menu
+        elif current_widget == MainWidget.SOLVER:
+            return self.solver
+        elif current_widget == MainWidget.PLAY:
+            return self.play
+        elif current_widget == MainWidget.RULES:
+            return self.rules
 
     def closeEvent(self, event: QCloseEvent | None) -> None:
         """Сохраняет состояние при выходе"""
@@ -75,6 +78,7 @@ class MainWindow(QMainWindow):
 
 class AppState:
     """Содержит нужную информацию о MainWindow для ее сохранения"""
+
     def __init__(self, main: MainWindow):
         self.solver_text: str = main.solver.info_label.text()
 

@@ -65,6 +65,7 @@ ensure_newline_before_comments = true
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.2.0"
 mypy = "^1.15.0"
+flake8 = "^7.2.0"
 
 [tool.flake8]
 max-line-length = 120

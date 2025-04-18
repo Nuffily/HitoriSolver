@@ -16,7 +16,7 @@ class MainMenu(QWidget):
 
         self.main_layout = QVBoxLayout()
 
-        self.image_label = self._create_image_label("../images/base.png")
+        self.image_label = self._create_image_label("../../images/base.png")
         self.main_layout.addWidget(self.image_label, stretch=1)
 
         self.button_play = MenuUtils.create_button("Играть")
