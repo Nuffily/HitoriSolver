@@ -23,14 +23,14 @@ class MainWindow(QMainWindow):
         self.menu = MainMenu()
         self.rules = RulesMenu()
 
-        current = MainWidget.MAIN
+        current_widget = MainWidget.MAIN
 
         try:
             with open("../saved_data.pickle", "rb") as file:
                 state: AppState = pickle.load(file)
                 self.solver = SolverMenu(state.solver, state.solver_text)
                 self.play = PlayMenu(state.play, state.play_text)
-                current = state.current_widget
+                current_widget = state.current_widget
 
         except (EOFError, FileNotFoundError, TypeError, AttributeError, IndexError) as e:
             print("Сгорел" + str(e))
@@ -42,14 +42,14 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.play)
         self.stacked_widget.addWidget(self.rules)
 
-        if current:
-            if current == MainWidget.MAIN:
+        if current_widget:
+            if current_widget == MainWidget.MAIN:
                 self.stacked_widget.setCurrentWidget(self.menu)
-            elif current == MainWidget.SOLVER:
+            elif current_widget == MainWidget.SOLVER:
                 self.stacked_widget.setCurrentWidget(self.solver)
-            elif current == MainWidget.PLAY:
+            elif current_widget == MainWidget.PLAY:
                 self.stacked_widget.setCurrentWidget(self.play)
-            elif current == MainWidget.RULES:
+            elif current_widget == MainWidget.RULES:
                 self.stacked_widget.setCurrentWidget(self.rules)
 
         self.menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.solver))
@@ -75,14 +75,15 @@ class MainWindow(QMainWindow):
 class AppState:
     def __init__(self, main: MainWindow):
         self.solver_text: str = main.solver.info_label.text()
+
         self.solver: TableState = TableState(
             text=main.solver.table.get_matrix(),
             painted=main.solver.table.get_painted_cells(),
             toggled=None,
             size=main.solver.table.size,
         )
-
         self.play_text: str = main.play.info_label.text()
+
         self.play: TableState = TableState(
             text=main.play.table.get_matrix(),
             painted=main.play.table.get_painted_cells(),
@@ -91,12 +92,11 @@ class AppState:
         )
         self.current_widget: MainWidget = MainWidget.MAIN
 
-        current = main.stacked_widget.currentWidget()
-        if current == main.rules:
+        if main.stacked_widget.currentWidget() == main.rules:
             self.current_widget = MainWidget.RULES
-        elif current == main.solver:
+        elif main.stacked_widget.currentWidget() == main.solver:
             self.current_widget = MainWidget.SOLVER
-        elif current == main.play:
+        elif main.stacked_widget.currentWidget() == main.play:
             self.current_widget = MainWidget.PLAY
 
 

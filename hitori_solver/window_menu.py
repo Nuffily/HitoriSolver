@@ -1,7 +1,7 @@
 from PIL.ImageQt import QPixmap
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator, QValidator
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from hitori_solver.field_generator import FieldGenerator
 from hitori_solver.shared_models import Cell, TableState
@@ -62,12 +62,14 @@ class SolverMenu(QWidget):
         self.info_label = MenuUtils.create_label("Введите все поля или измените размер поля")
 
         self.main_layout.addLayout(MenuUtils.pack_layout(self.info_label))
+
         self.main_layout.addSpacing(30)
 
         self.edit_line_size = MenuUtils.create_line_edit("Введите размер поля", QIntValidator(5, 10))
         self.button_change_table = MenuUtils.create_button("Создать таблицу", (250, 40))
 
         self.main_layout.addLayout(MenuUtils.pack_layout(self.edit_line_size, self.button_change_table))
+
         self.main_layout.addSpacing(50)
 
         self.button_menu = MenuUtils.create_button("Назад")
@@ -91,7 +93,7 @@ class SolverMenu(QWidget):
         self.setLayout(self.main_layout)
 
     def _recreate_field(self, size: int) -> None:
-        """Пересоздает QTable размера size и добавляет ее в main_layout"""
+        """Пересоздает Table размера size и добавляет ее в main_layout"""
 
         MenuUtils.unlock_buttons(self.button_solve)
         if size < 3 or size > 10:
@@ -108,7 +110,7 @@ class SolverMenu(QWidget):
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
     def _create_table_field(self, size: int) -> Table:
-        """Создает QTable заданного размера, в ячейки которой можно вписать только числа от 0 до 99"""
+        """Создает Table заданного размера, в ячейки которой можно вписать только числа от 0 до 99"""
 
         table = Table(size)
         table.fill_with_lines(QIntValidator(0, 10))
@@ -118,7 +120,8 @@ class SolverMenu(QWidget):
     def _try_to_solve(self) -> None:
         """
         Пытается решить введенное в self.field поле Hitori
-        При нахождении такового закрашивает клетки соответствующие первому найденному решению
+        При нахождении такового закрашивает клетки соответствующие первому найденному решению, а также запрещает
+        изменение таблицы и выключает кнопку "Решить"
         Результат работы выписывает в self.info_label
         """
         try:
@@ -132,7 +135,7 @@ class SolverMenu(QWidget):
 
 
 class PlayMenu(QWidget):
-    """Меню для ввода своей головоломки и получения решения на нее"""
+    """Меню для генерации головоломки и позволения пользователю попытаться ее решить"""
 
     def __init__(self, table_state: TableState | None = None, state_text: str | None = None) -> None:
         super().__init__()
@@ -140,7 +143,6 @@ class PlayMenu(QWidget):
         self.generator = FieldGenerator()
 
         self.main_layout = QVBoxLayout()
-
         self.info_label = MenuUtils.create_label("")
 
         if table_state:
@@ -152,14 +154,15 @@ class PlayMenu(QWidget):
             self.table = self._create_table_field(5, self.generator.generate_hitori_field(5))
 
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
-
         self.main_layout.addLayout(MenuUtils.pack_layout(self.info_label))
+
         self.main_layout.addSpacing(30)
 
         self.edit_line_size = MenuUtils.create_line_edit("Введите размер поля", QIntValidator(5, 10))
         self.button_change_table = MenuUtils.create_button("Сгенерировать поле", (250, 40))
 
         self.main_layout.addLayout(MenuUtils.pack_layout(self.edit_line_size, self.button_change_table))
+
         self.main_layout.addSpacing(50)
 
         self.button_menu = MenuUtils.create_button("Назад")
@@ -185,7 +188,7 @@ class PlayMenu(QWidget):
         self.setLayout(self.main_layout)
 
     def _recreate_field(self, size: int) -> None:
-        """Пересоздает QTable размера size и добавляет ее в main_layout"""
+        """Пересоздает Table размера size и добавляет ее в main_layout"""
 
         MenuUtils.unlock_buttons(self.button_solve, self.button_surrender)
         if size < 3 or size > 8:
@@ -200,12 +203,9 @@ class PlayMenu(QWidget):
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
     def _create_table_field(self, size: int, field: list[list[int]]) -> "Table":
-        """Создает QTable заданного размера, в ячейки которой можно вписать только числа от 0 до 99"""
-
-        self.field = field
-
+        """Создает Table заданного размера c кнопка, в которых записываются значения из field"""
         table = Table(size)
-        table.fill_with_buttons(self.field)
+        table.fill_with_buttons(field)
 
         self.info_label.setText("Решайте!")
 
@@ -213,9 +213,9 @@ class PlayMenu(QWidget):
 
     def _check_answer(self) -> None:
         """
-        Пытается решить введенное в self.field поле Hitori
-        При нахождении такового закрашивает клетки соответствующие первому найденному решению
-        Результат работы выписывает в self.info_label
+        Проверяет введенное решение
+        Если оно оказалось верным, выключает таблицу и кнопки "Проверить" и "Сдаться"
+        Иначе - пишет в info_label причину
         """
         tiling = self.table.get_tiling()
 
@@ -241,9 +241,8 @@ class PlayMenu(QWidget):
 
     def _surrender(self) -> None:
         """
-        Пытается решить введенное в self.field поле Hitori
-        При нахождении такового закрашивает клетки соответствующие первому найденному решению
-        Результат работы выписывает в self.info_label
+        Решает текущее поле и закрашивает клетки соответствующие решению
+        После выключает таблицу и кнопки "Проверить" и "Сдаться"
         """
         MenuUtils.lock_buttons(self.button_solve, self.button_surrender)
         self.table.solve_and_paint()
@@ -251,12 +250,10 @@ class PlayMenu(QWidget):
 
 
 class RulesMenu(QWidget):
-    """Меню для ввода своей головоломки и получения решения на нее"""
+    """Меню с правилами игры"""
 
     def __init__(self) -> None:
         super().__init__()
-
-        self.generator = FieldGenerator()
 
         self.main_layout = QVBoxLayout()
 
@@ -293,68 +290,8 @@ class MenuUtils:
         raise TypeError("Это статический класс")
 
     @staticmethod
-    def create_table(size: int) -> QTableWidget:
-        table = QTableWidget(size, size)
-
-        table.verticalHeader().hide()
-        table.horizontalHeader().hide()
-        table.resizeColumnsToContents()
-        table.resizeRowsToContents()
-
-        table.setStyleSheet(
-            """
-           QTableWidget {
-               background-color: #171d25;
-               gridline-color: #171d25;
-               border: 0px;
-               font-size: 20px;
-               padding: 0px 0px ;
-           }
-           QLineEdit {
-               background-color: #9ba2aa;
-               color: #171d25;
-               border: none;
-               font-size: 25px;
-               padding: 2px 2px ;
-           }
-            QTableWidget::item:selected {
-                background-color: #171d25;
-                color: #9ba2aa;
-            }
-        """
-        )
-
-        table.setFixedSize(
-            table.horizontalHeader().length() + table.verticalHeader().width(),
-            table.verticalHeader().length() + table.horizontalHeader().height(),
-        )
-
-        table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        return table
-
-    @staticmethod
-    def get_matrix(table: QTableWidget) -> list[list[int]]:
-        """Достает и возвращает матрицу из self.field"""
-        matrix = []
-
-        for x in range(table.rowCount()):
-            row = []
-            for y in range(table.columnCount()):
-                widget = table.cellWidget(x, y)
-                if widget and isinstance(widget, QLineEdit | QPushButton):
-                    text = widget.text()
-                    row.append(int(text) if text else 0)
-                else:
-                    row.append(0)
-            matrix.append(row)
-
-        return matrix
-
-    @staticmethod
     def create_button(inscription: str, size: tuple[int, int] = (150, 40)) -> QPushButton:
-        """Создает и возвращает кнопку с поданной надписью размера 150x40"""
+        """Создает и возвращает кнопку с поданной надписью и поданного размера"""
         button = QPushButton(inscription)
         button.setFixedSize(size[0], size[1])
         return button
@@ -391,6 +328,7 @@ class MenuUtils:
 
     @staticmethod
     def lock_buttons(*args: QPushButton) -> None:
+        """Меняет цвет поданных кнопок и выключает их"""
         for button in args:
             button.setEnabled(False)
             button.setStyleSheet(
@@ -402,6 +340,7 @@ class MenuUtils:
 
     @staticmethod
     def unlock_buttons(*args: QPushButton) -> None:
+        """Возвращает цвет поданных кнопок в норму и включает их"""
         for button in args:
             button.setEnabled(True)
             button.setStyleSheet(
