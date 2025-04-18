@@ -2,7 +2,7 @@ import pickle
 from enum import IntEnum
 
 from PyQt6.QtGui import QCloseEvent, QIcon
-from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
 from hitori_solver.GUI.shared_models import TableState
 from hitori_solver.GUI.window_menus import MainMenu, PlayMenu, RulesMenu, SolverMenu
@@ -53,7 +53,8 @@ class MainWindow(QMainWindow):
         self.play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
         self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
 
-    def get_widget_from_enum(self, current_widget: "MainWidget"):
+    def get_widget_from_enum(self, current_widget: "MainWidget") -> QWidget:
+        """Возвращает QWidget из self, cоответствующий enum'у current_widget"""
         if current_widget == MainWidget.MAIN:
             return self.menu
         elif current_widget == MainWidget.SOLVER:
