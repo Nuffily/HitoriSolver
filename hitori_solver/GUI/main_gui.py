@@ -4,8 +4,8 @@ from enum import IntEnum
 from PyQt6.QtGui import QCloseEvent, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QWidget
 
-from hitori_solver.GUI.shared_models import MenuState
 from hitori_solver.GUI.window_menus import MainMenu, PlayMenu, RulesMenu, SolverMenu
+from hitori_solver.hitori.shared_models import MenuState
 
 
 class MainWindow(QMainWindow):

@@ -4,9 +4,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator, QPixmap, QValidator
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from hitori_solver.GUI.shared_models import Cell, MenuState, TableState
 from hitori_solver.GUI.table import Table
 from hitori_solver.hitori.field_generator import FieldGenerator
+from hitori_solver.hitori.shared_models import Cell, MenuState, TableState
 
 
 class MainMenu(QWidget):

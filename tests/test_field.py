@@ -3,8 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from hitori_solver.GUI.shared_models import Cell
 from hitori_solver.hitori.field import Field
+from hitori_solver.hitori.shared_models import Cell
 from hitori_solver.hitori.tiling import Tiling
 
 

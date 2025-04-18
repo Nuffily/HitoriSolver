@@ -4,8 +4,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QValidator
 from PyQt6.QtWidgets import QHeaderView, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem
 
-from hitori_solver.GUI.shared_models import Cell
 from hitori_solver.hitori.field import Field
+from hitori_solver.hitori.shared_models import Cell
 from hitori_solver.hitori.solver import Solver
 from hitori_solver.hitori.tiling import Tiling
 
