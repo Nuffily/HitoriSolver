@@ -4,7 +4,7 @@ from PyQt6.QtGui import QIntValidator, QValidator
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QTableWidget, QVBoxLayout, QWidget
 
 from hitori_solver.field_generator import FieldGenerator
-from hitori_solver.shared_models import Cell
+from hitori_solver.shared_models import Cell, TableState
 from hitori_solver.table import Table
 
 
@@ -45,12 +45,17 @@ class MainMenu(QWidget):
 class SolverMenu(QWidget):
     """Меню для ввода своей головоломки и получения решения на нее"""
 
-    def __init__(self) -> None:
+    def __init__(self, table_state: TableState | None = None, state_text: str | None = None) -> None:
         super().__init__()
 
         self.main_layout = QVBoxLayout()
 
-        self.table = self._create_table_field(5)
+        if table_state:
+            self.table = self._create_table_field(table_state.size)
+            self.table.set_text_in_cells(table_state.text)
+            self.table.paint_over_cells(table_state.painted)
+        else:
+            self.table = self._create_table_field(5)
 
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
@@ -76,6 +81,12 @@ class SolverMenu(QWidget):
 
         self.button_solve.clicked.connect(self._try_to_solve)
 
+        if state_text:
+            self.info_label.setText(state_text)
+            if state_text == "Найдено решение":
+                MenuUtils.lock_buttons(self.button_solve)
+                self.table.setEnabled(False)
+
         self.main_layout.addLayout(MenuUtils.pack_layout(self.button_menu, self.button_solve))
         self.setLayout(self.main_layout)
 
@@ -91,6 +102,8 @@ class SolverMenu(QWidget):
         self.table.deleteLater()
 
         self.table = self._create_table_field(size)
+
+        self.info_label.setText("Введите поля таблицы")
 
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
@@ -108,45 +121,20 @@ class SolverMenu(QWidget):
         При нахождении такового закрашивает клетки соответствующие первому найденному решению
         Результат работы выписывает в self.info_label
         """
-
-        # matrix = MenuUtils.get_matrix(self.table)
-
-        # if not self.table.isEnabled():
-        #     self.info_label.setText("Решение уже найдено")
-        #     return
-
         try:
-            # solves = self.table.solve()
-            #
-            # if solves:
-            #     tiling = solves[0]
-            #     MenuUtils.lock_buttons(self.button_solve)
-            #     self.info_label.setText("Найдено решение")
-            #
-            #     for x in range(0, self.table.size):
-            #         for y in range(0, self.table.size):
-            #             if tiling(Cell(x, y)):
-            #                 self.table.removeCellWidget(x, y)
-            #                 item = QTableWidgetItem()
-            #                 item.setBackground(QColor(23, 29, 37))
-            #                 self.table.setItem(x, y, item)
-            #
-            #     self.table.setEnabled(False)
-            #
-            # else:
-            #     self.info_label.setText("Решений нет")
             MenuUtils.lock_buttons(self.button_solve)
             self.table.solve_and_paint()
             self.info_label.setText("Найдено решение")
 
         except ValueError:
             self.info_label.setText("Решений нет")
+            MenuUtils.unlock_buttons(self.button_solve)
 
 
 class PlayMenu(QWidget):
     """Меню для ввода своей головоломки и получения решения на нее"""
 
-    def __init__(self) -> None:
+    def __init__(self, table_state: TableState | None = None, state_text: str | None = None) -> None:
         super().__init__()
 
         self.generator = FieldGenerator()
@@ -155,7 +143,14 @@ class PlayMenu(QWidget):
 
         self.info_label = MenuUtils.create_label("")
 
-        self.table = self._create_table_field(5)
+        if table_state:
+            self.table = self._create_table_field(table_state.size, table_state.text)
+            self.table.paint_over_cells(table_state.painted)
+            if table_state.toggled:
+                self.table.toggle_cells(table_state.toggled)
+        else:
+            self.table = self._create_table_field(5, self.generator.generate_hitori_field(5))
+
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
         self.main_layout.addLayout(MenuUtils.pack_layout(self.info_label))
@@ -180,6 +175,12 @@ class PlayMenu(QWidget):
             else self.info_label.setText("Введите размер поля")
         )
 
+        if state_text:
+            self.info_label.setText(state_text)
+            if state_text in ("Решение верно!", "Решение"):
+                MenuUtils.lock_buttons(self.button_solve, self.button_surrender)
+                self.table.setEnabled(False)
+
         self.main_layout.addLayout(MenuUtils.pack_layout(self.button_menu, self.button_solve, self.button_surrender))
         self.setLayout(self.main_layout)
 
@@ -194,14 +195,14 @@ class PlayMenu(QWidget):
         self.main_layout.removeWidget(self.table)
         self.table.deleteLater()
 
-        self.table = self._create_table_field(size)
+        self.table = self._create_table_field(size, self.generator.generate_hitori_field(size))
 
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
 
-    def _create_table_field(self, size: int) -> "Table":
+    def _create_table_field(self, size: int, field: list[list[int]]) -> "Table":
         """Создает QTable заданного размера, в ячейки которой можно вписать только числа от 0 до 99"""
 
-        self.field = self.generator.generate_hitori_field(size)
+        self.field = field
 
         table = Table(size)
         table.fill_with_buttons(self.field)
@@ -209,27 +210,6 @@ class PlayMenu(QWidget):
         self.info_label.setText("Решайте!")
 
         return table
-
-    # def _field_cell(self, table: QTableWidget, x: int, y: int, num: int) -> None:
-    #     """Форматирует ячейку QTable по координатам (x, y), добавляя в нее validator"""
-    #     item = MenuUtils.ToggleButton(str(num))
-    #     table.setCellWidget(x, y, item)
-    #
-    # def _get_tiling(self) -> Tiling:
-    #     """Достает и возвращает матрицу из self.field"""
-    #     tiling = Tiling(self.field.get_size())
-    #
-    #     for x in range(self.table.rowCount()):
-    #         row = []
-    #         for y in range(self.table.columnCount()):
-    #             widget = self.table.cellWidget(x, y)
-    #             if widget and isinstance(widget, MenuUtils.ToggleButton):
-    #                 if self.table.cellWidget(x, y).is_painted:
-    #                     tiling.paint_over(Cell(x, y))
-    #             else:
-    #                 row.append(0)
-    #
-    #     return tiling
 
     def _check_answer(self) -> None:
         """
@@ -311,41 +291,6 @@ class MenuUtils:
 
     def __init__(self) -> None:
         raise TypeError("Это статический класс")
-
-    # class ToggleButton(QPushButton):
-    #     def __init__(self, inscr: str) -> None:
-    #         super().__init__(inscr)
-    #         self.clicked.connect(self.toggle_color)
-    #         self.is_painted = False
-    #         self.update_button_color()
-    #
-    #     def toggle_color(self) -> None:
-    #         self.is_painted = not self.is_painted
-    #         self.update_button_color()
-    #
-    #     def update_button_color(self) -> None:
-    #         self.setStyleSheet(
-    #             f"""
-    #             QPushButton {{
-    #             border-style: solid;
-    #             border-color: black;
-    #             border-width: 0px;
-    #             border-radius: 0px;
-    #             background-color: #{"171d25" if self.is_painted else "9ba2aa"};
-    #             color: #{"9ba2aa" if self.is_painted else "171d25"};
-    #             border: none;
-    #             padding: 0px;
-    #             font-size: 20px;
-    #             border-radius: 0px;
-    #             }}
-    #             QPushButton:hover {{
-    #                 background-color: #171d35;
-    #             }}
-    #             QPushButton:pressed {{
-    #                 background-color: #070d15;
-    #             }}
-    #         """
-    #         )
 
     @staticmethod
     def create_table(size: int) -> QTableWidget:
@@ -450,9 +395,9 @@ class MenuUtils:
             button.setEnabled(False)
             button.setStyleSheet(
                 """QPushButton {
-                                            background-color: #30353f;
-                                            color: #171d25;
-                                            }"""
+                background-color: #30353f;
+                color: #171d25;
+                }"""
             )
 
     @staticmethod

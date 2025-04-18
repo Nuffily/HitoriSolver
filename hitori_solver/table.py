@@ -85,6 +85,49 @@ class Table(QTableWidget):
 
         return tiling
 
+    def get_toggled_cells(self) -> list[list[bool]]:
+        matrix = [[False] * self.size for _ in range(self.size)]
+        for x in range(self.size):
+            for y in range(self.size):
+                widget = self.cellWidget(x, y)
+                if isinstance(widget, self.ToggleButton) and widget.is_painted:
+                    matrix[x][y] = True
+                else:
+                    matrix[x][y] = False
+        return matrix
+
+    def set_text_in_cells(self, matrix: list[list[int]]) -> None:
+        for x in range(self.size):
+            for y in range(self.size):
+                widget = self.cellWidget(x, y)
+                if matrix[x][y] and isinstance(widget, self.ToggleButton | QLineEdit):
+                    widget.setText(str(matrix[x][y]))
+                else:
+                    widget.setText("")
+
+    def toggle_cells(self, matrix: list[list[bool]]) -> None:
+        for x in range(self.size):
+            for y in range(self.size):
+                widget = self.cellWidget(x, y)
+                if matrix[x][y] and isinstance(widget, self.ToggleButton) and not widget.is_painted:
+                    widget.toggle_color()
+
+    def paint_over_cells(self, matrix: list[list[bool]]) -> None:
+        for x in range(self.size):
+            for y in range(self.size):
+                if matrix[x][y]:
+                    self.paint_over(x, y)
+
+    def get_painted_cells(self) -> list[list[bool]]:
+        matrix = [[False] * self.size for _ in range(self.size)]
+        for x in range(self.size):
+            for y in range(self.size):
+                if not self.cellWidget(x, y):
+                    matrix[x][y] = True
+                else:
+                    matrix[x][y] = False
+        return matrix
+
     def solve(self) -> list[Tiling]:
         return Solver(Field(self.get_matrix())).solve()
 
@@ -97,32 +140,6 @@ class Table(QTableWidget):
                 valid_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.setCellWidget(x, y, valid_line_edit)
 
-    # def _fill_ready_table(self, table: QTableWidget, size: int, matrix: list[list[int]]) -> None:
-    #     validator = QIntValidator(0, 10)
-    #
-    #     for x in range(size):
-    #         for y in range(size):
-    #             self._field_cell(table, x, y, validator)
-    #             if matrix[x][y]:
-    #                 table.cellWidget(x, y).setText(str(matrix[x][y]))
-    #             else:
-    #                 table.setEnabled(False)
-    #                 table.removeCellWidget(x, y)
-    #                 item = QTableWidgetItem()
-    #                 item.setBackground(QColor(23, 29, 37))
-    #                 table.setItem(x, y, item)
-
-    # def _field_cell(self, field: QTableWidget, x: int, y: int, validator: QValidator) -> None:
-    #     """Форматирует ячейку QTable по координатам (x, y), добавляя в нее validator"""
-    #     # item = QTableWidgetItem("0")
-    #     # item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-    #     # field.setItem(x, y, item)
-    #
-    #     valid_line_edit = QLineEdit()
-    #     valid_line_edit.setValidator(validator)
-    #     valid_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-    #
-    #     field.setCellWidget(x, y, valid_line_edit)
     def paint_over(self, x: int, y: int) -> None:
         self.removeCellWidget(x, y)
         item = QTableWidgetItem()
@@ -141,7 +158,6 @@ class Table(QTableWidget):
                 if isinstance(self.cellWidget(x, y), self.ToggleButton):
                     if self.cellWidget(x, y).is_painted:
                         self.cellWidget(x, y).toggle_color()
-                    print("2133")
 
         try:
             tiling = self.solve()[0]

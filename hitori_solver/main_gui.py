@@ -1,7 +1,11 @@
-from PyQt6.QtGui import QIcon
+import pickle
+from enum import IntEnum
+
+from PyQt6.QtGui import QCloseEvent, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
 
-from hitori_solver.window_menu import MainMenu, MenuUtils, PlayMenu, RulesMenu, SolverMenu
+from hitori_solver.shared_models import TableState
+from hitori_solver.window_menu import MainMenu, PlayMenu, RulesMenu, SolverMenu
 
 
 class MainWindow(QMainWindow):
@@ -16,33 +20,37 @@ class MainWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
-        # try:
-        #     with open("saved_data.pickle", "rb") as file:
-        #         state = pickle.load(file)
-        #         matr = state.solve_table
-        #         # for x in range(len(state.solve_table)):
-        #         #     for y in range(len(state.solve_table)):
-        #         #         if state.solve_table[x][y]:
-        #         #             self.solver.table.cellWidget(x, y).setText(str(state.solve_table[x][y]))
-        #         #         else:
-        #         #             self.solver.table.removeCellWidget(x, y)
-        #         #             item = QTableWidgetItem()
-        #         #             item.setBackground(QColor(23, 29, 37))
-        #         #             self.solver.table.setItem(x, y, item)
-        #         #         self.play.table.cellWidget(x, y).setText(str(state.play_table[x][y]))
-        #
-        # except (EOFError, pickle.UnpicklingError, TypeError, AttributeError, IndexError) as e:
-        #     print("Сгорел" + str(e))
-
         self.menu = MainMenu()
-        self.solver = SolverMenu()
-        self.play = PlayMenu()
         self.rules = RulesMenu()
+
+        current = MainWidget.MAIN
+
+        try:
+            with open("../saved_data.pickle", "rb") as file:
+                state: AppState = pickle.load(file)
+                self.solver = SolverMenu(state.solver, state.solver_text)
+                self.play = PlayMenu(state.play, state.play_text)
+                current = state.current_widget
+
+        except (EOFError, FileNotFoundError, TypeError, AttributeError, IndexError) as e:
+            print("Сгорел" + str(e))
+            self.solver = SolverMenu()
+            self.play = PlayMenu()
 
         self.stacked_widget.addWidget(self.menu)
         self.stacked_widget.addWidget(self.solver)
         self.stacked_widget.addWidget(self.play)
         self.stacked_widget.addWidget(self.rules)
+
+        if current:
+            if current == MainWidget.MAIN:
+                self.stacked_widget.setCurrentWidget(self.menu)
+            elif current == MainWidget.SOLVER:
+                self.stacked_widget.setCurrentWidget(self.solver)
+            elif current == MainWidget.PLAY:
+                self.stacked_widget.setCurrentWidget(self.play)
+            elif current == MainWidget.RULES:
+                self.stacked_widget.setCurrentWidget(self.rules)
 
         self.menu.button_solve.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.solver))
         self.menu.button_play.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.play))
@@ -52,25 +60,51 @@ class MainWindow(QMainWindow):
         self.play.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
         self.rules.button_menu.clicked.connect(lambda: self.stacked_widget.setCurrentWidget(self.menu))
 
-    # def closeEvent(self, event):
-    #     state = AppState(self)
-    #     try:
-    #         with open("saved_data.pickle", "wb") as file:
-    #             pickle.dump(state, file)
-    #     except Exception as e:
-    #         print(str(e))
-    #
-    #     event.accept()
+    def closeEvent(self, event: QCloseEvent | None) -> None:
+        try:
+            state = AppState(self)
+            with open("../saved_data.pickle", "wb") as file:
+                pickle.dump(state, file)
+        except Exception as e:
+            print(str(e))
+
+        if event:
+            event.accept()
 
 
 class AppState:
     def __init__(self, main: MainWindow):
-        self.solve_table = MenuUtils.get_matrix(main.solver.table)
-        self.solve_state = main.solver.info_label.text()
-        self.play_table = MenuUtils.get_matrix(main.play.table)
-        self.play_state = main.play.info_label.text()
-        print(self.solve_table)
-        print(main.play.table.cellWidget(1, 1).text())
+        self.solver_text: str = main.solver.info_label.text()
+        self.solver: TableState = TableState(
+            text=main.solver.table.get_matrix(),
+            painted=main.solver.table.get_painted_cells(),
+            toggled=None,
+            size=main.solver.table.size,
+        )
+
+        self.play_text: str = main.play.info_label.text()
+        self.play: TableState = TableState(
+            text=main.play.table.get_matrix(),
+            painted=main.play.table.get_painted_cells(),
+            toggled=main.play.table.get_toggled_cells(),
+            size=main.play.table.size,
+        )
+        self.current_widget: MainWidget = MainWidget.MAIN
+
+        current = main.stacked_widget.currentWidget()
+        if current == main.rules:
+            self.current_widget = MainWidget.RULES
+        elif current == main.solver:
+            self.current_widget = MainWidget.SOLVER
+        elif current == main.play:
+            self.current_widget = MainWidget.PLAY
+
+
+class MainWidget(IntEnum):
+    MAIN = 0
+    SOLVER = 1
+    PLAY = 2
+    RULES = 3
 
 
 def start() -> None:
