@@ -15,7 +15,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Hitori")
-        self.setWindowIcon(QIcon("../../images/icon.png"))
+        self.setWindowIcon(QIcon("images/icon.png"))
 
         self.resize(800, 800)
 
@@ -173,7 +173,3 @@ def configure_app(app: QApplication) -> None:
         }
     """
     )
-
-
-if __name__ == "__main__":
-    start()

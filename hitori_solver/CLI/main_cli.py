@@ -56,13 +56,10 @@ def interactive_loop() -> None:
 
 
 @click.command()
-def cli() -> None:
+@click.argument("c")
+def cli(c: str) -> None:
     """Interactive CLI application"""
     click.echo(
         "Это программа, решающая головоломку Hitori!\nВведите 'solve' для решения или команду 'help' для справки"
     )
     interactive_loop()
-
-
-if __name__ == "__main__":
-    cli()

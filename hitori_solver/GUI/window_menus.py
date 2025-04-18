@@ -17,7 +17,7 @@ class MainMenu(QWidget):
 
         self._main_layout = QVBoxLayout()
 
-        self._image_label = self._create_image_label("../../images/base.png")
+        self._image_label = self._create_image_label("images/base.png")
         self._main_layout.addWidget(self._image_label, stretch=1)
 
         self.button_play = MenuUtils.create_button("Играть")
@@ -38,13 +38,8 @@ class MainMenu(QWidget):
 
         image_label = QLabel()
 
-        if not pixmap.isNull():
-            pixmap = pixmap.scaled(
-                600, 400, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
-            )
-            image_label.setPixmap(pixmap)
-        else:
-            print("123")
+        pixmap = pixmap.scaled(600, 400, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+        image_label.setPixmap(pixmap)
 
         image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         return image_label
