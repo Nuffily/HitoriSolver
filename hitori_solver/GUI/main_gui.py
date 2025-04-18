@@ -109,6 +109,7 @@ class AppState:
 
 class MainWidget(IntEnum):
     """Определяет окно класса MainWindow"""
+
     MAIN = 0
     SOLVER = 1
     PLAY = 2
@@ -175,7 +176,7 @@ def configure_app(app: QApplication) -> None:
             stop:0 #1a3143, stop:1 #1b3239);
         }
         QLineEdit::item:selected {
-        background-color: 171d25; 
+        background-color: 171d25;
         color: 9ba2aa;
         }
     """

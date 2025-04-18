@@ -1,8 +1,8 @@
 import random
 from typing import Callable
 
-from hitori_solver.hitori.field import Field
 from hitori_solver.GUI.shared_models import Cell
+from hitori_solver.hitori.field import Field
 from hitori_solver.hitori.solver import Solver
 from hitori_solver.hitori.tiling import Tiling
 

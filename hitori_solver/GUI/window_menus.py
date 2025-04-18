@@ -3,9 +3,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIntValidator, QValidator
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-from hitori_solver.hitori.field_generator import FieldGenerator
 from hitori_solver.GUI.shared_models import Cell, TableState
 from hitori_solver.GUI.table import Table
+from hitori_solver.hitori.field_generator import FieldGenerator
 
 
 class MainMenu(QWidget):
@@ -78,9 +78,11 @@ class SolverMenu(QWidget):
         self.button_solve = MenuUtils.create_button("Решить")
 
         self.button_change_table.clicked.connect(
-            lambda: self._recreate_field(int(self.edit_line_size.text()))
-            if self.edit_line_size.text() != ""
-            else self.info_label.setText("Введите размер поля")
+            lambda: (
+                self._recreate_field(int(self.edit_line_size.text()))
+                if self.edit_line_size.text() != ""
+                else self.info_label.setText("Введите размер поля")
+            )
         )
 
         self.button_solve.clicked.connect(self._try_to_solve)
@@ -173,9 +175,11 @@ class PlayMenu(QWidget):
         self.button_surrender.clicked.connect(self._surrender)
 
         self.button_change_table.clicked.connect(
-            lambda: self._recreate_field(int(self.edit_line_size.text()))
-            if self.edit_line_size.text() != ""
-            else self.info_label.setText("Введите размер поля")
+            lambda: (
+                self._recreate_field(int(self.edit_line_size.text()))
+                if self.edit_line_size.text() != ""
+                else self.info_label.setText("Введите размер поля")
+            )
         )
 
         if state_text:
@@ -204,7 +208,6 @@ class PlayMenu(QWidget):
         #         print(str(self.table.cellWidget(x,y)))
 
         self.main_layout.insertWidget(0, self.table, alignment=Qt.AlignmentFlag.AlignCenter, stretch=1)
-
 
     def _create_table_field(self, size: int, field: list[list[int]]) -> "Table":
         """Создает Table заданного размера c кнопка, в которых записываются значения из field"""
