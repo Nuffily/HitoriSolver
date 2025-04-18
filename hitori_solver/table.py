@@ -9,6 +9,8 @@ from hitori_solver.tiling import Tiling
 
 
 class Table(QTableWidget):
+    """Таблица QTable с методами для игры в Hitori"""
+
     def __init__(self, size: int):
         super().__init__(size, size)
         self.size = size
@@ -48,16 +50,14 @@ class Table(QTableWidget):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
-    def configure(self) -> None:
-        pass
-
     def fill_with_buttons(self, matrix: list[list[int]]) -> None:
+        """Добавляет в каждую ячейку таблицы ToggleButton с текстом из поданной матрицы"""
         for x in range(self.size):
             for y in range(self.size):
                 self.setCellWidget(x, y, self.ToggleButton(str(matrix[x][y])))
 
     def get_matrix(self) -> list[list[int]]:
-        """Достает и возвращает матрицу из self.field"""
+        """Возвращает матрицу значений Table"""
         matrix = []
 
         for x in range(self.size):
@@ -74,7 +74,7 @@ class Table(QTableWidget):
         return matrix
 
     def get_tiling(self) -> Tiling:
-        """Достает и возвращает матрицу из self.field"""
+        """Возвращает Tiling из закрашенных ячеек таблицы"""
         tiling = Tiling(self.rowCount())
 
         for x in range(self.size):
@@ -86,6 +86,7 @@ class Table(QTableWidget):
         return tiling
 
     def get_toggled_cells(self) -> list[list[bool]]:
+        """Возвращает матрицу соответствующую закрашенным ячейкам, если те - ToggleButton"""
         matrix = [[False] * self.size for _ in range(self.size)]
         for x in range(self.size):
             for y in range(self.size):
