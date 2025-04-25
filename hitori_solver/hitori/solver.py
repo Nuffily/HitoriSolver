@@ -1,8 +1,8 @@
 import copy
 
-from hitori_solver.field import Field
-from hitori_solver.shared_models import Cell
-from hitori_solver.tiling import Tiling
+from hitori_solver.hitori.field import Field
+from hitori_solver.hitori.shared_models import Cell
+from hitori_solver.hitori.tiling import Tiling
 
 
 class Solver:
